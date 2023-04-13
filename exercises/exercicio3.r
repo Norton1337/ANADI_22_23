@@ -1,10 +1,9 @@
-setwd("D:/Documents/ISEP/ANADI")
 getwd()
 data = read.csv("DADOS3.csv")
 
 # [3]
-
 # [3a]
+
 # Dividir as 99 viaturas em três grupos: viaturas com 4 cilindros, com 6 e com 8.
 dados4Cyl = subset(data, Cylinders == 4)
 dados6Cyl = subset(data, Cylinders == 6)
@@ -32,8 +31,11 @@ dados8Cyl = subset(data, Cylinders == 8)
 
 
 # 4) As observações não devem ter outliers significativos
-accelerations = list(dados4Cyl$Acceleration,dados6Cyl$Acceleration,dados8Cyl$Acceleration)
-boxplot(accelerations, xlab = 'Cylinders', ylab = 'Acceleration')
+colours = c("#1f77b4", "#ff7f0e", "#2ca02c")
+accelerations = list(dados4Cyl$Acceleration, dados6Cyl$Acceleration, dados8Cyl$Acceleration)
+names(accelerations) = c("4 cylinders", "6 cylinders", "8 cylinders")
+boxplot(accelerations, xlab = "Cylinders", ylab = "Acceleration", col = colours)
+
 
 # Calcular os quartis de cada grupo
 dados4CylQ1 = quantile(dados4Cyl$Acceleration, 0.25)
@@ -74,24 +76,21 @@ if (has_outliers_dados4 || has_outliers_dados6 || has_outliers_dados8) {
 
 
 
-
-
 # 5) A variável dependente deve ser normalmente distribuída para cada grupo
 
 # A variável dependente é normalmente distruibuída?
 # H0: A variável dependente dos três grupos segue uma distruibuição normal
 # H1: A variável dependente dos três grupos não segue uma distruibuição normal
 
-# Verificar se p-value é menor que 0.05 em todos os grupos
-shapiro.test(dados4Cyl$Acceleration) # p-value = 0.1056 x
-shapiro.test(dados6Cyl$Acceleration) # p-value = 0.03628
-shapiro.test(dados8Cyl$Acceleration) # p-value = 0.2729 x
-
-# Os grupos dados4Cyl e dados8Cyl não tem a variável dependentente normalmente
+# Verificar se p-value é maior que 0.05 em todos os grupos
+shapiro.test(dados4Cyl$Acceleration) # p-value = 0.1056 
+shapiro.test(dados6Cyl$Acceleration) # p-value = 0.03628 x
+shapiro.test(dados8Cyl$Acceleration) # p-value = 0.2729 
+# O grupo dados6Cyl não tem a variável dependentente normalmente
 #   distribuída logo não podemos utilizar o teste One-Way ANOVA
 
 
-# p-value é maior que 0.05, ou seja, vamos usar testes não parametricos
+# p-value é menor que 0.05 num grupo, ou seja, vamos usar testes não parametricos
 
 # - Teste de Kruskal-Wallis -
 # Este teste é a alternativa não paramétrica do teste One-Way ANOVA.
@@ -118,6 +117,10 @@ cylinders = factor(data$Cylinders)
 
 #Modelo Regressão Linear
 model = lm(Acceleration ~ weight + horsepower + cylinders, data = data)
+summary(model)
+# função par() permite controlar as propriedades do gráfico
+par(mfrow = c(2,2)) # 2 linhas e 2 colunas
+plot(model)
 
 # Criar um predictor com um peso de 2950 kg, potência de 100 Hp e 4 cilindros. 
 
@@ -125,8 +128,4 @@ predictor = data.frame(weight = 2950, horsepower = 100, cylinders = factor(4))
 
 # Estimar aceleração de um veiculo com o peso, potência e cilindros desejados
 predicted_acceleration = predict(model, newdata = predictor)
-predicted_acceleration
-
-
-
-
+# 17.30784
