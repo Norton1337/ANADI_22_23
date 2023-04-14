@@ -97,13 +97,13 @@ shapiro.test(dados8Cyl$Acceleration) # p-value = 0.2729
 # Deve-se utilizar quando a hipótese da normalidade for rejeitada ou se
 #   o tamanho das amostras forem pequenas
 
-
 grupos  = factor(c(rep("Grupo1",length(dados4Cyl$Cylinders)),
                    rep("Grupo2", length(dados6Cyl$Cylinders)),
                    rep("Groupo3",length(dados8Cyl$Cylinders))))
+grouposAcceleration = c(dados4Cyl$Acceleration,dados6Cyl$Acceleration)
 
 result = kruskal.test(data$Acceleration,grupos)
-result # p-value = 0.0006377
+result # p-value = 2.795e-11
 
 # O p-value ser menor que 0.05 leva-nos a rejeitar H0.
 # Existem diferenças significativas na aceleração entre os três grupos de cilindros.
