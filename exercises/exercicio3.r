@@ -100,9 +100,9 @@ shapiro.test(dados8Cyl$Acceleration) # p-value = 0.2729
 grupos  = factor(c(rep("Grupo1",length(dados4Cyl$Cylinders)),
                    rep("Grupo2", length(dados6Cyl$Cylinders)),
                    rep("Groupo3",length(dados8Cyl$Cylinders))))
-grouposAcceleration = c(dados4Cyl$Acceleration,dados6Cyl$Acceleration)
+grouposAcceleration = c(dados4Cyl$Acceleration,dados6Cyl$Acceleration,dados8Cyl$Acceleration)
 
-result = kruskal.test(data$Acceleration,grupos)
+result = kruskal.test(grouposAcceleration,grupos)
 result # p-value = 2.795e-11
 
 # O p-value ser menor que 0.05 leva-nos a rejeitar H0.
@@ -118,8 +118,6 @@ cylinders = factor(data$Cylinders)
 #Modelo Regressão Linear
 model = lm(Acceleration ~ weight + horsepower + cylinders, data = data)
 summary(model)
-# função par() permite controlar as propriedades do gráfico
-par(mfrow = c(2,2)) # 2 linhas e 2 colunas
 plot(model)
 
 # Criar um predictor com um peso de 2950 kg, potência de 100 Hp e 4 cilindros. 
