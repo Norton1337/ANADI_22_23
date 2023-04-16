@@ -1,50 +1,90 @@
 #Exercicio 2 iteração 1
 
-# Carregar os dados a partir do arquivo DADOS2.csv
+# Install package corrplot
+install.packages("corrplot")
+install.packages("Hmisc")
+install.packages("dplyr")
 
-#como os dados do csv está rodeado de aspas, instalamos este package para as
+
+# load corrplot
+library(corrplot)
+library(Hmisc)
+library(tidyr)
+library(dplyr)
+library(stats)
+
+# Carregar data de dados2.csv
+
+#Os valores estao rodeados de "" então vamos resolver isso
 
 
-# Read in the CSV file as a character vector
+# Ler data do csv
 csv_lines <- readLines("/Users/asus/Desktop/ANADI/iteracao_1/DADOS2.csv")
 
-# Remove the quotation marks from the column names
+# Remover "" do cabecalho
 csv_lines[1] <- gsub('"', '', csv_lines[1])
 
-# Remove the quotation marks from the data values
+# Remover "" dos valores
 for (i in 2:length(csv_lines)) {
   csv_lines[i] <- gsub('"', '', csv_lines[i])
 }
 
-# Write the cleaned lines to a new CSV file
+# Escrever a data limpa
 writeLines(csv_lines, "/Users/asus/Desktop/ANADI/iteracao_1/new_Dados2.csv")
 
-#Read data from dados2 CSV
-data <- read.csv("/Users/asus/Desktop/ANADI/iteracao_1/new_Dados2.csv", sep = ",")
+#Ler do segundo ficheiro
+dados <- read.csv("/Users/asus/Desktop/ANADI/iteracao_1/new_Dados2.csv", sep = ",")
 
-#extract only data from algorithms
-algorithms_data <- data[,3:7]
+#Extrair apenas a data relevante para a resolução do exercicio
+algorithms_data <- dados[,3:7]
 
-#produce correlations matrix
-corr_matrix <- cor(algorithms_data)
+#2a
+
+#Para verificar se está apto à correlacao, verificamos se segue dsitribuição normal
+
+# Teste de normalidade de Shapiro-Wilk (para n<30)
+
+# H0: a população é normalmente distribuída
+# H1: a população não é normalmente distribuída
+
+# Assumindo nível de significância alfa=0.05
+
+
+shapiro.test(dados$SVM) # p-value=0.2687 > alfa, logo não se rejeita H0
+shapiro.test(dados$DT)  # p-value=0.06772 > alfa, logo não se rejeita H0
+shapiro.test(dados$KN)  # p-value=0.06926 > alfa, logo não se rejeita H0
+shapiro.test(dados$RF)  # p-value=0.3138 > alfa, logo não se rejeita H0
+shapiro.test(dados$ML)  # p-value=0.02138 < alfa=0.05, logo rejeita-se H0 e conclui-se que não segue uma distribuição normal 
+shapiro.test(dados$GB)  # p-value=0.5125 > alfa, logo não se rejeita H0
+
+
+#Fazer matriz de pearson de relações
+corr_matrix <- rcorr(as.matrix(algorithms_data), type="pearson")
 print(corr_matrix)
 
-#To verify significative diferences between algortihms, we can use an ANOVA test
 
-#to setup anova we need libraries to convert data to be readable for anova test
-library(tidyr)
-library(dplyr)
 
-#Transform data into long format
-long_data<- data %>%
-  pivot_longer(cols = SVM:GB,names_to = "algorithm",values_to = "precision" )
+#representar num gráfico
+corrplot(corr_matrix$r, method = 'circle', type = 'upper', order = 'hclust', 
+         tl.col = 'black', tl.srt = 45, addCoef.col = 'black', 
+         col = colorRampPalette(c("white", "orange"))(100), 
+         addgrid.col = 'black')
 
-#ANOVA test 
- model <- aov(precision ~ algorithm ,data = long_data)
- summary(model)
+#2b
 
- #To test multiple comparisons we use TukeyHSD 
- TukeyHSD(model)
+# Seleciona as colunas 3 a 8 do conjunto de dados "dados" e armazena em "precisoes"
+precisoes <- dados[, 3:8]
+
+# Converte a matriz "precisoes" em uma matriz de dados numéricos e armazena em "matriz_precisoes"
+matriz_precisoes <- as.matrix(precisoes)
+
+# Executa o teste de Friedman na matriz de precisões "matriz_precisoes"
+friedman.test(matriz_precisoes)
+
+
+#2c
+
+#Como as diferenças não são significativas, não é necessário fazer o posthoc
  
  
  
