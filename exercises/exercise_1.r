@@ -1,6 +1,6 @@
 library(ggplot2)
 
-setwd('C:/Users/manua/ANADI/Trabalho_Prático_1')
+getwd()
 
 #1.a) Acrescente aos dados importados uma coluna com o tempo no sistema POSIXct no formato
 #"yy/mm/dd HH:MM:SS GMT". Deve usar as opções origin = "1970-01-01" e tz = "GMT" para
@@ -54,28 +54,50 @@ eps03 <- subset(esp03_data, Date >= as.POSIXct("2013-08-04 00:00:00", tz = "GMT"
 #Comparação das temperaturas ao longo do dia das 3 bombas
 dados <- cbind(eps01[,c("Date", "MOTOR_TEMP")],eps02[,c("Date", "MOTOR_TEMP")]$MOTOR_TEMP, eps03[,c("Date", "MOTOR_TEMP")]$MOTOR_TEMP)
 colnames(dados) <- c("hora", "bomba1", "bomba2", "bomba3")
-plot(as.POSIXct(dados$hora), as.numeric(dados$bomba1), type = "l", col = "red", xlab = "Hora do Dia", ylab = "Temperatura", main = "Comparação da Temperatura do motor entre Bombas", ylim = c(min(as.numeric(dados$bomba2)), max(as.numeric(dados$bomba3))))
+plot(as.POSIXct(dados$hora), as.numeric(dados$bomba1),main = "
+Comparison of engine temperature between bombs",type = "l", col = "red", xlab = "Hour", ylab = "Engine temperature",ylim = c(min(as.numeric(dados$bomba2)), max(as.numeric(dados$bomba3))))
 lines(as.POSIXct(dados$hora), as.numeric(dados$bomba2), col = "blue")
 lines(as.POSIXct(dados$hora), as.numeric(dados$bomba3), col = "green")
-legend("topright", legend = c("Bomba 1", "Bomba 2", "Bomba 3"), col = c("red", "blue", "green"), lty = 1)
+legend("topright", legend = c("ESP01", "ESP02", "ESP03"), col = c("red", "blue", "green"), lty = 1)
 
 #Para uma melhor vizualização temos os gráfico separados
-plot(eps01$Date, eps01$MOTOR_TEMP, type = "l", xlab = "Horas", ylab = "Temperatura", main = "Gráfico da variação da temperatura do motor ao longo do dia da bomba EPS01", col="red")
-plot(eps02$Date, eps02$MOTOR_TEMP, type = "l", xlab = "Horas", ylab = "Temperatura", main = "Gráfico da variação da temperatura do motor ao longo do dia da bomba EPS02", col="#0000ff")
-plot(eps03$Date, eps03$MOTOR_TEMP, type = "l", xlab = "Horas", ylab = "Temperatura", main = "Gráfico da variação da temperatura do motor ao longo do dia da bomba EPS03", col="green")
+plot(eps01$Date, eps01$MOTOR_TEMP, type = "l", xlab = "Hours", ylab = "Engine temperature", main = "Gráfico da variação da temperatura do motor ao longo do dia da bomba EPS01", col="red")
+plot(eps02$Date, eps02$MOTOR_TEMP, type = "l", xlab = "Hours", ylab = "Engine temperature", main = "Gráfico da variação da temperatura do motor ao longo do dia da bomba EPS02", col="blue")
+plot(eps03$Date, eps03$MOTOR_TEMP, type = "l", xlab = "Hours", ylab = "Engine temperature", main = "Gráfico da variação da temperatura do motor ao longo do dia da bomba EPS03", col="green")
 
+variation_eps01<-as.numeric(max(eps01$MOTOR_TEMP))-as.numeric(min(eps01$MOTOR_TEMP))
+variation_eps01
+
+variation_eps02<-as.numeric(max(eps02$MOTOR_TEMP))- as.numeric(min(eps02$MOTOR_TEMP))
+variation_eps02
+
+variation_eps03<-as.numeric(max(eps03$MOTOR_TEMP))-as.numeric(min(eps03$MOTOR_TEMP))
+variation_eps03
 
 #1.c) - Efetue um boxplot com os dados da alínea anterior. Comente os resultados obtidos. 
 
 #BoxPlot com as três bombas (a escala fica prejudicada)
-boxplot(as.numeric(eps01$MOTOR_TEMP), as.numeric(eps02$MOTOR_TEMP), as.numeric(eps03$MOTOR_TEMP), names= c("Bomba 1", "Bomba 2", "Bomba 3"), col=c(2,3,4), main="Boxplot das bombas EPS01, EPS02 e ESP03")
+boxplot(as.numeric(eps01$MOTOR_TEMP), as.numeric(eps02$MOTOR_TEMP), as.numeric(eps03$MOTOR_TEMP), names= c("ESP01", "ESP02", "ESP03"),main="Boxplot das bombas EPS01, EPS02 e ESP03",col=c(2,3,4))
 
 #Para uma melhor visualização temos os gráficos separados
 boxplot(as.numeric(eps01$MOTOR_TEMP),col=2, main="Boxplot da temperatura do motor bomba EPS01")
 boxplot(as.numeric(eps02$MOTOR_TEMP),col=3, main="Boxplot da temperatura do motor bomba EPS02")
 boxplot(as.numeric(eps03$MOTOR_TEMP),col=4, main="Boxplot da temperatura do motor bomba EPS03")
 
+mean_eps01<-mean(as.numeric(eps01$MOTOR_TEMP))
+median_eps01<-median(as.numeric(eps01$MOTOR_TEMP))
+median_eps01
+abs(mean_eps01-median_eps01)
 
+mean_eps02<-mean(as.numeric(eps02$MOTOR_TEMP))
+median_eps02<-median(as.numeric(eps02$MOTOR_TEMP))
+median_eps02
+abs(mean_eps02-median_eps02)
+
+mean_eps03<-mean(as.numeric(eps03$MOTOR_TEMP))
+median_eps03<-median(as.numeric(eps03$MOTOR_TEMP))
+median_eps03
+abs(mean_eps03-median_eps03)
 
 #1.d) - Uma forma de avaliar a quantidade de barris produzida num dia é calcular a média das medições do “oil rate” efetuadas no dia em questão: 
 
@@ -108,24 +130,62 @@ data_frame_bombas <- data.frame(Data = dates,
                              ESP02 = result_2)
 
 ggplot(data_frame_bombas, aes(x = Data)) +
-  geom_bar(aes(y = ESP01, fill = "Bomba ESP01"), stat = "identity", position = "dodge") +
-  geom_bar(aes(y = ESP02, fill = "Bomba ESP02"), stat = "identity", position = "dodge") +
-  labs(title = "Produção de óleo por Bomba", y = "Quantidade de barris produzidos", fill = "") +
-  scale_fill_manual(values = c("Bomba ESP01" = "#B19CD9", "Bomba ESP02" = "#800080"))
+  geom_bar(aes(y = ESP01, fill = "Pump ESP01"), stat = "identity", position = "dodge") +
+  geom_bar(aes(y = ESP02, fill = "Pump ESP02"), stat = "identity", position = "dodge") +
+  labs(y = "Oil barrels produced", fill = "") +
+  labs(x = "Date", fill = "")+
+  scale_fill_manual(values = c("Pump ESP01" = "#de536a", "Pump ESP02" = "#57bb46"))
+
+
+#Gráfico de barras para comparar a temperatura dpo motor das duas bomba durante o mês de março
+barris_1<- aggregate(as.numeric(barris_1$MOTOR_TEMP) ~ format(as.Date(barris_1$Date), "%Y-%m-%d"), data = barris_1, mean)
+colnames(barris_1) <- c("dia", "media_motor")
+barris_2<- aggregate(as.numeric(barris_2$MOTOR_TEMP) ~ format(as.Date(barris_2$Date), "%Y-%m-%d"), data = barris_2, mean)
+colnames(barris_2) <- c("dia", "media_motor")
+
+data_frame_bombas <- data.frame(Data = as.Date(barris_1$dia),
+                                ESP01 = barris_1$media_motor,
+                                ESP02 = barris_2$media_motor)
+
+ggplot(data_frame_bombas, aes(x = Data)) +
+  geom_bar(aes(y = ESP01, fill = "Pump ESP01"), stat = "identity", position = "dodge") +
+  geom_bar(aes(y = ESP02, fill = "Pump ESP02"), stat = "identity", position = "dodge") +
+  labs(y = "Engine temperature", fill = "") +
+  labs(x = "Date", fill = "")+
+  scale_fill_manual(values = c("Pump ESP01" = "#de536a", "Pump ESP02" = "#57bb46"))
+
+mean(barris_1$media_motor)-mean(barris_2$media_motor)
+mean(data_frame_bombas$ESP01)-mean(data_frame_bombas$ESP02)
 
 #ii. Em que mês a bomba 1 extraiu mais barris de petróleo?
 #N.B. Considere os meses compreendidos entre os dias 1-6-2013 e 31-5-2014. 
 
 barris_1_1 <- subset(esp01_data, Date >= as.POSIXct("2013-06-01 00:00:00", tz = "GMT") & Date <= as.POSIXct("2014-05-31 23:59:59", tz = "GMT"))
 
-dados_mensais_bomba1 <- aggregate(as.numeric(barris_1_1$OIL_RATE) ~ format(as.Date(data), "%Y-%m"), data = barris_1_1$Date, mean)
-colnames(dados_mensais_bomba1) <- c("mes", "media_barris")
+dados_diarios_bomba1 <- aggregate(as.numeric(barris_1_1$OIL_RATE) ~ format(as.Date(barris_1_1$Date), "%Y-%m-%d"), data = barris_1_1, mean)
+colnames(dados_diarios_bomba1) <- c("dia", "media_barris")
+dados_diarios_bomba1<- as.data.frame(dados_diarios_bomba1)
 
-cores <- rep("#B2DFB2", length(dados_mensais_bomba1[,1]))
-mes_max_index <- which(dados_mensais_bomba1$mes == dados_mensais_bomba1$mes[which.max(dados_mensais_bomba1$media_barris)])
-cores[mes_max_index]<- "#254117"
+dados_mensais_bomba1 <- aggregate(dados_diarios_bomba1$media_barris ~ format(as.Date(dados_diarios_bomba1$dia), "%Y-%m"), data = dados_diarios_bomba1, sum)
+colnames(dados_mensais_bomba1) <- c("mes", "total_barris")
 
-barplot(dados_mensais_bomba1$media_barris,  col = cores, names.arg = dados_mensais_bomba1$mes, xlab = "Meses", ylab = "Produção de barris de óleo", main = "Produção mensal da bomba EPS01")
+cores <- rep("#de536a", length(dados_mensais_bomba1[,1]))
+mes_max_index <- which(dados_mensais_bomba1$mes == dados_mensais_bomba1$mes[which.max(dados_mensais_bomba1$total_barris)])
+cores[mes_max_index]<- "#903444"
+
+barplot(dados_mensais_bomba1$total_barris, names.arg = dados_mensais_bomba1$mes, col = cores, xlab = "Months", ylab = "Production of oil barrels")
+
+
+#Verificar se a media das temperaturas mensais também foi mais alta no mês de maior produção
+temperatura_mes_bomba1 <- aggregate(as.numeric(barris_1_1$MOTOR_TEMP) ~ format(as.Date(barris_1_1$Date), "%Y-%m"), data = barris_1_1, mean)
+colnames(temperatura_mes_bomba1) <- c("mes", "media_temperatura")
+
+cores <- rep("#de536a", length(temperatura_mes_bomba1[,1]))
+mes_max_index <- which(temperatura_mes_bomba1$mes == temperatura_mes_bomba1$mes[which.max(temperatura_mes_bomba1$media_temperatura)])
+cores[mes_max_index]<- "#903444"
+#A teoria não se confirma   
+barplot(temperatura_mes_bomba1$media_temperatura,col = cores, names.arg = temperatura_mes_bomba1$mes, xlab = "Months", ylab = "Engine Temperature")
+
 
 #iii. Extraiu-se uma amostra aleatória de dias entre os dias 1-6-2013 e 31-5-2014 usando as seguintes instruções: 
 set.seed(300)
@@ -137,6 +197,7 @@ random_number<-sample(1:365,10)
 number_days<- length(dates <- seq(as.Date("2013-06-01"), as.Date("2014-05-31"), by = "day"))
 
 barris_2_1 <- subset(esp02_data, Date >= as.POSIXct("2013-06-01 00:00:00", tz = "GMT") & Date <= as.POSIXct("2014-05-31 23:59:59", tz = "GMT"))
+barris_1_1 <- subset(esp01_data, Date >= as.POSIXct("2013-06-01 00:00:00", tz = "GMT") & Date <= as.POSIXct("2014-05-31 23:59:59", tz = "GMT"))
 
 bomba1<-count_barrils(barris_1_1,number_days)
 bomba2<- count_barrils(barris_2_1,number_days)
@@ -157,7 +218,7 @@ my_sample <- function(numbers,bomb1,bomb2) {
 
 result<-my_sample(random_number,bomba1,bomba2)
 
-boxplot(result$ESP01, result$ESP02,names= c("Bomba1", "Bomba 2"), col=c(2,3), main="Produção Diária de barris da amostra aleatória")
+boxplot(result$ESP01, result$ESP02,names= c("ESP01", "ESP02"), col=c(2,3))
 
 
 
@@ -207,3 +268,24 @@ mean_sample2 <- mean(sample2)
 
 #Anualmente também se verifica que a bomba 2 produz menos que a bomba 1 
 mean_sample1 > mean_sample2
+
+
+barris_1_1 <- subset(esp01_data, Date >= as.POSIXct("2013-06-01 00:00:00", tz = "GMT") & Date <= as.POSIXct("2014-05-31 23:59:59", tz = "GMT"))
+barris_1_2 <- subset(esp02_data, Date >= as.POSIXct("2013-06-01 00:00:00", tz = "GMT") & Date <= as.POSIXct("2014-05-31 23:59:59", tz = "GMT"))
+
+dados_anuais_bomba1 <- aggregate(as.numeric(barris_1_1$OIL_RATE) ~ format(as.Date(data), "%Y-%m-%d"), data = barris_1_1$Date, mean)
+colnames(dados_anuais_bomba1) <- c("mes", "media_barris")
+
+dados_anuais_bomba2 <- aggregate(as.numeric(barris_1_2$OIL_RATE) ~ format(as.Date(data), "%Y-%m-%d"), data = barris_1_2$Date, mean)
+colnames(dados_anuais_bomba2) <- c("mes", "media_barris")
+
+data_frame_bombas <- data.frame(Months = as.Date(dados_anuais_bomba1$mes),
+                                ESP01 = dados_anuais_bomba1$media_barris,
+                                ESP02 = dados_anuais_bomba2$media_barris)
+
+ggplot(data_frame_bombas, aes(x = Months)) +
+  geom_bar(aes(y = ESP01, fill = "Pump ESP01"), stat = "identity", position = "dodge") +
+  geom_bar(aes(y = ESP02, fill = "Pump ESP02"), stat = "identity", position = "dodge") +
+  labs(y = "Oil barrels produced", fill = "") +
+  labs(x = "Days", fill = "")+
+  scale_fill_manual(values = c("Pump ESP01" = "#de536a", "Pump ESP02" = "#57bb46"))
