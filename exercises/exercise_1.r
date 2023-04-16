@@ -77,7 +77,7 @@ variation_eps03
 #1.c) - Efetue um boxplot com os dados da alínea anterior. Comente os resultados obtidos. 
 
 #BoxPlot com as três bombas (a escala fica prejudicada)
-boxplot(as.numeric(eps01$MOTOR_TEMP), as.numeric(eps02$MOTOR_TEMP), as.numeric(eps03$MOTOR_TEMP), names= c("ESP01", "ESP02", "ESP03"),main="Boxplot das bombas EPS01, EPS02 e ESP03",col=c(2,3,4))
+boxplot(as.numeric(eps01$MOTOR_TEMP), as.numeric(eps02$MOTOR_TEMP), as.numeric(eps03$MOTOR_TEMP), names= c("ESP01", "ESP02", "ESP03"),col=c(2,3,4))
 
 #Para uma melhor visualização temos os gráficos separados
 boxplot(as.numeric(eps01$MOTOR_TEMP),col=2, main="Boxplot da temperatura do motor bomba EPS01")
@@ -220,7 +220,8 @@ result<-my_sample(random_number,bomba1,bomba2)
 
 boxplot(result$ESP01, result$ESP02,names= c("ESP01", "ESP02"), col=c(2,3))
 
-
+IQR(result$ESP01)
+IQR(result$ESP02)
 
 #iv. Utilize as amostras aleatórias da alínea anterior para efetuar um teste de hipóteses que
 #permita verificar se a média da produção diária de petróleo da bomba 1 foi superior à da
@@ -240,8 +241,9 @@ variancia_EPS01 != variancia_EPS02
 alfa <- 0.05
 resTest <-t.test (result$ESP01, result$ESP02, alternative ="greater") 
 p_value <-resTest$p.value
+p_value
 #Como o p-value é menor do que o nível de significancia, rejeitamos H0, ou seja aceitamos H1, dessa forma
-#podemos concluir que com um nível de siginificância de 5%, a média de produção de barris de óleo da bomba 1 é maior que a média de produção da bomba 2.
+#podemos concluir que com um nível de siginificância de 5%, que a média de produção de barris de óleo da bomba 1 é maior que a média de produção da bomba 2.
 p_value < alfa
 
 
