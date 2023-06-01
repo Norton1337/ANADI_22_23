@@ -5,7 +5,7 @@ library(ggplot2)
 #1 - Comece por carregar o ficheiro (“ciclismo.csv”) para o ambiente do R, 
 # verifique a sua dimensão e obtenha um sumário dos dados.
 
-setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2")
+setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
 data <- read.csv("ciclismo.csv")
 dimensions <- dim(data) #11 colunas e 1000 linhas
 data_summary <- summary(data) #Possui variaveis categorias, númericas e binárias
@@ -78,6 +78,12 @@ ggplot(data, aes_string(x = data$vo2_results, y = data$hr_results)) +
 data <- na.omit(data)
 
 #b) Identifique dados inconsistentes e outliers, se aplicável 
+
+outliers_altitude <- boxplot.stats(data$altitude_results)$out
+outliers_hr <- boxplot(data$hr_results)$out
+outliers_vo2 <- boxplot(data$vo2_results)$out
+
+#Como os outliers representam apenas 0.6% dos dados, não consideramos significativos a sua retirada
 
 #c) Implemente a seleção de atributos, se aplicável 
 # Iremos retirar a coluna do ID e da Data de nascimento, 
