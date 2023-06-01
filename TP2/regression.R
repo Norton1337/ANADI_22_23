@@ -5,7 +5,7 @@ library(ggplot2)
 #1 - Comece por carregar o ficheiro (“ciclismo.csv”) para o ambiente do R, 
 # verifique a sua dimensão e obtenha um sumário dos dados.
 
-setwd("C:/Users/manu0/Desktop/RESTO/ANADI/anadi_isep_23/TP2")
+setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2")
 data <- read.csv("ciclismo.csv")
 dimensions <- dim(data) #11 colunas e 1000 linhas
 data_summary <- summary(data) #Possui variaveis categorias, númericas e binárias
@@ -92,10 +92,23 @@ data <- data[,-c(1,10)]
 # fizemos o OneHotEnconder já estão entre 0,1 ou entre [1-x], porém, outros
 # atributos como a idade, altitude, possuem valores significamente mais altos, performaremos a normalização nesses atributos
 
-data$age <- (data$age - mean(data$age)) / sd(data$age)
-data$altitude_results <- (data$altitude_results - mean(data$altitude_results)) / sd(data$altitude_results)
-data$vo2_results <- scale(data$vo2_results, center = TRUE, scale = TRUE)
-data$hr_results <- scale(data$hr_results, center = TRUE, scale = TRUE)
+min_max <- function(data_aux) {
+  min_value <- min(data_aux)
+  max_value <- max(data_aux)
+  result <- (data_aux - min_value)/(max_value - min_value)
+  return(result)
+}
+
+
+data$age <- min_max(data$age)
+data$altitude_results <- min_max(data$altitude)
+data$vo2_results <- min_max(data$vo2_results)
+data$hr_results <- min_max(data$hr_results)
+data$Continent <- min_max(data$Continent)
+data$Background <- min_max(data$Background)
+data$Team <- min_max(data$Team)
+
+#write.csv(data, "normalised_data.csv", row.names = FALSE)
 
 #5 - Crie um diagrama de correlação entre todos os atributos. Comente o que observa. 
 

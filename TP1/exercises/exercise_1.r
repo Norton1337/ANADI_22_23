@@ -1,6 +1,6 @@
 library(ggplot2)
 
-getwd()
+setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP1/data")
 
 #1.a) Acrescente aos dados importados uma coluna com o tempo no sistema POSIXct no formato
 #"yy/mm/dd HH:MM:SS GMT". Deve usar as opções origin = "1970-01-01" e tz = "GMT" para
@@ -106,28 +106,15 @@ abs(mean_eps03-median_eps03)
 barris_1 <- subset(esp01_data, Date >= as.POSIXct("2014-03-01 00:00:00", tz = "GMT") & Date <= as.POSIXct("2014-03-31 23:59:59", tz = "GMT"))
 barris_2 <- subset(esp02_data, Date >= as.POSIXct("2014-03-01 00:00:00", tz = "GMT") & Date <= as.POSIXct("2014-03-31 23:59:59", tz = "GMT"))
 
-count_barrils <- function(dataset,days) {
-  intervale<-(24*60)/5
-  intervale_days<-days
-  init<- 1
-  vector<- numeric(days)
-  for (i in 1:intervale_days) {
-    end<- i*intervale
-    vector[i] <- as.integer(mean(as.numeric(dataset[init:end,15])))
-    init<-(end+1)
-  }
-
-  return(vector)
-}
-
-dates <- seq(as.Date("2013-03-01"), as.Date("2013-03-31"), by = "day")
-result_1<-count_barrils(barris_1,31)
-result_2<-count_barrils(barris_2,31)
+barris_1<- aggregate(as.numeric(barris_1$OIL_RATE) ~ format(as.Date(barris_1$Date), "%Y-%m-%d"), data = barris_1, mean)
+colnames(barris_1) <- c("dia", "media_oil_rate")
+barris_2<- aggregate(as.numeric(barris_2$OIL_RATE) ~ format(as.Date(barris_2$Date), "%Y-%m-%d"), data = barris_2, mean)
+colnames(barris_2) <- c("dia", "media_oil_rate")
 
 
 data_frame_bombas <- data.frame(Data = dates,
-                             ESP01 = result_1,
-                             ESP02 = result_2)
+                             ESP01 = barris_1$media_oil_rate,
+                             ESP02 = barris_2$media_oil_rate)
 
 ggplot(data_frame_bombas, aes(x = Data)) +
   geom_bar(aes(y = ESP01, fill = "Pump ESP01"), stat = "identity", position = "dodge") +
@@ -143,11 +130,11 @@ colnames(barris_1) <- c("dia", "media_motor")
 barris_2<- aggregate(as.numeric(barris_2$MOTOR_TEMP) ~ format(as.Date(barris_2$Date), "%Y-%m-%d"), data = barris_2, mean)
 colnames(barris_2) <- c("dia", "media_motor")
 
-data_frame_bombas <- data.frame(Data = as.Date(barris_1$dia),
+data_frame_bombas1 <- data.frame(Data = as.Date(barris_1$dia),
                                 ESP01 = barris_1$media_motor,
                                 ESP02 = barris_2$media_motor)
 
-ggplot(data_frame_bombas, aes(x = Data)) +
+ggplot(data_frame_bombas1, aes(x = Data)) +
   geom_bar(aes(y = ESP01, fill = "Pump ESP01"), stat = "identity", position = "dodge") +
   geom_bar(aes(y = ESP02, fill = "Pump ESP02"), stat = "identity", position = "dodge") +
   labs(y = "Engine temperature", fill = "") +
@@ -239,7 +226,7 @@ variancia_EPS01 != variancia_EPS02
 # Vamos assumir α=0.05
 
 alfa <- 0.05
-resTest <-t.test (result$ESP01, result$ESP02, alternative ="greater") 
+resTest <-t.test (result$ESP01, result$ESP02, alternative ="greater", paired=TRUE) 
 p_value <-resTest$p.value
 p_value
 #Como o p-value é menor do que o nível de significancia, rejeitamos H0, ou seja aceitamos H1, dessa forma
@@ -252,7 +239,6 @@ p_value < alfa
 
 #Calculo da média no período de 1-6-2013 e 31-5-2014 da produção das duas bombas
 mean_bomba1<- mean(bomba1) 
-mean_bomba2<- mean(bomba2)
 
 #No período de 1-6-2013 e 31-5-2014 verifica-se que a bomba 2 produz menos que a bomba 1 
 mean_bomba1 > mean_bomba2
