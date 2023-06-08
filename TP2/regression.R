@@ -4,8 +4,8 @@ library(ggplot2)
 
 #1 - Comece por carregar o ficheiro (“ciclismo.csv”) para o ambiente do R, 
 # verifique a sua dimensão e obtenha um sumário dos dados.
-
-setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
+#setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
+setwd("C:/Users/asus/Desktop/ANADI/iteracao_2/anadi_isep_23/TP2/data")
 data <- read.csv("ciclismo.csv")
 dimensions <- dim(data) #11 colunas e 1000 linhas
 data_summary <- summary(data) #Possui variaveis categorias, númericas e binárias
@@ -115,6 +115,7 @@ data$Background <- min_max(data$Background)
 data$Team <- min_max(data$Team)
 
 #write.csv(data, "normalised_data.csv", row.names = FALSE)
+#normalised_data <- read.csv("normalised_data.csv")
 
 #5 - Crie um diagrama de correlação entre todos os atributos. Comente o que observa. 
 
@@ -125,4 +126,61 @@ corrplot(cor(data), method = "color",
          tl.col = "black", tl.srt = 45,
          addCoef.col = "black", number.cex = 0.8,
          col = colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))(200))
+
+
+#exercicio 7
+#a) first holdout criteria 
+sample <- sample(c(TRUE,FALSE),nrow(normalised_data), replace=TRUE, prob=c(0.7,0.3))
+normalised_data.train <- normalised_data[sample,]
+normalised_data.test <- normalised_data[!sample,]
+
+summary(normalised_data.train$vo2_results)
+summary(normalised_data.test$vo2_results)
+
+#regressao multipla
+mlr.model<- lm(vo2_results ~ altitude_results + hr_results, data = normalised_data.train)
+
+summary(mlr.model)$coef
+
+#arvore de regressao
+library(rpart)
+library(rpart.plot)
+
+tree.model <- rpart(vo2_results ~., method = "anova", data = normalised_data.train)
+
+rpart.plot(tree.model)
+
+#rede neuronal
+install.packages("neuralnet")
+library(neuralnet)
+
+numnodes <- 1
+nn.model <- neuralnet(vo2_results ~ altitude_results + hr_results, data = normalised_data.train, hidden = numnodes,linear.output = TRUE)
+
+plot(nn.model)
+nn.model$result.matrix
+
+#mudar parâmetros para 1 nivel interno, 3 nos
+numnodes <- 3
+
+nn.model.i <-
+  neuralnet(vo2_results ~ altitude_results + hr_results, data = normalised_data.train, hidden = numnodes,linear.output = TRUE)
+plot(nn.model.i)
+
+nn.model.i$result.matrix
+
+#mudar parâmetros para 2 niveis iternos com 6 e 2 nos respetivamente
+
+numnodes <- c(6,2)
+
+nn.model.ii <-
+  neuralnet(vo2_results ~ altitude_results + hr_results, data = normalised_data.train, hidden = numnodes,linear.output = TRUE)
+plot(nn.model.ii)
+
+nn.model.ii$result.matrix
+
+
+
+
+
 
