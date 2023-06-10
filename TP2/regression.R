@@ -180,6 +180,57 @@ plot(nn.model.ii)
 
 nn.model.ii$result.matrix
 
+#---------------------------------------
+#exercicio 8
+# Multiple Linear Regression prediction
+mlr.pred <- predict(mlr.model, normalised_data.test)
+
+# Decision Tree prediction
+tree.pred <- predict(tree.model, normalised_data.test)
+
+# Neural Network prediction for different models
+nn.pred <- compute(nn.model, normalised_data.test[2:3])$net.result
+nn.i.pred <- compute(nn.model.i, normalised_data.test[2:3])$net.result
+nn.ii.pred <- compute(nn.model.ii, normalised_data.test[2:3])$net.result
+
+# Install and load the 'Metrics' package for MAE and RMSE calculation
+if (!require(Metrics)) {
+  install.packages("Metrics")
+}
+library(Metrics)
+
+# Calculate MAE and RMSE for all models
+models <- list("Multiple Linear Regression" = mlr.pred, 
+               "Decision Tree" = tree.pred, 
+               "Neural Network (1 node)" = nn.pred, 
+               "Neural Network (3 nodes)" = nn.i.pred, 
+               "Neural Network (6,2 nodes)" = nn.ii.pred)
+
+for (model_name in names(models)) {
+  mae <- mae(normalised_data.test$vo2_results, models[[model_name]])
+  rmse <- rmse(normalised_data.test$vo2_results, models[[model_name]])
+  print(paste(model_name, "- MAE:", round(mae, 2), "RMSE:", round(rmse, 2)))
+}
+
+
+#--------------------------------------------------
+#Exercicio 9
+# Perform a paired t-test
+#first between nn models
+t_test_result <- t.test(nn.pred, nn.i.pred , paired = TRUE)
+print(t_test_result)
+
+t_test_result <- t.test(nn.i.pred, nn.ii.pred , paired = TRUE)
+print(t_test_result)
+
+#beetwen mlr and nn.ii.pred
+t_test_result <- t.test(mlr.pred, nn.ii.pred , paired = TRUE)
+print(t_test_result)
+
+#best is Multiple Linear Regression - MAE: 0.04 RMSE: 0.05 in this case
+
+
+
 
 
 
