@@ -4,8 +4,8 @@ library(ggplot2)
 
 #1 - Comece por carregar o ficheiro (“ciclismo.csv”) para o ambiente do R, 
 # verifique a sua dimensão e obtenha um sumário dos dados.
-#setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
-setwd("C:/Users/asus/Desktop/ANADI/iteracao_2/anadi_isep_23/TP2/data")
+setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
+#setwd("C:/Users/asus/Desktop/ANADI/iteracao_2/anadi_isep_23/TP2/data")
 data <- read.csv("ciclismo.csv")
 dimensions <- dim(data) #11 colunas e 1000 linhas
 data_summary <- summary(data) #Possui variaveis categorias, númericas e binárias
@@ -19,30 +19,74 @@ data$age <- ages
 #3 - Analise os atributos do conjunto de dados mais significativos,
 #usando gráficos, análises estatísticas e/ou outros métodos apropriados. 
 
+count_gender <- table(data$gender)
+# Criar o gráfico de barras para ver a distribuição do genero
+barplot(count_gender, 
+        main = "Gender Distribution",
+        xlab = "Gender",
+        col = "lightblue")
+
 #Tranformando o atributo categorio binario Gender em binário númerico
 # female - 0; male - 1
 data$gender<- ifelse(data$gender == "female", 0, 1)
 
+count_training_camp <- table(data$Winter.Training.Camp)
+# Criar o gráfico de barras para ver a distribuição do genero
+barplot(count_training_camp, 
+        main = "Winter Training Camp",
+        col = "lightblue")
+
 #Repetindo o mesmo processo para a variável Winter.Training.Camp
 # completed - 1; none - 0
 data$Winter.Training.Camp<- ifelse(data$Winter.Training.Camp == "none", 0, 1)
+
+count_pro_level <- table(data$Pro.level)
+# Criar o gráfico de barras para ver a distribuição do genero
+barplot(count_pro_level, 
+        main = "Pro Level",
+        col = "lightblue")
 
 #Repetindo o mesmo processo para a variável Pro.level
 # World Tour - 1; Continental - 0
 data$Pro.level <- ifelse(data$Pro.level == "Continental", 0, 1)
 
 #Transformando variáveis categoricas não binárias em numericas
+
+count_countries <- table(data$Continent)
+# Criar o gráfico de barras para ver a distribuição do genero
+barplot(count_countries, 
+        main = "Continets",
+        col = "lightblue")
+
 unique_countries <- unique(data$Continent)
 data$Continent <- match(data$Continent, unique_countries)
 
+
+count_teams <- table(data$Team)
+# Criar o gráfico de barras para ver a distribuição do genero
+barplot(count_teams, 
+        main = "Teams",
+        col = "lightblue")
+
 unique_teams <- unique(data$Team)
 data$Team <- match(data$Team, unique_teams)
+
+count_background <- table(data$Background)
+# Criar o gráfico de barras para ver a distribuição do genero
+barplot(count_background, 
+        main = "Background",
+        col = "lightblue")
 
 unique_backgrounds <- unique(data$Background)
 data$Background <- match(data$Background, unique_backgrounds)
 
 label_names <- c("Gender", "Team", "Background", "Level", "Winter Camp", "Altitude", "VO2", "HR", "Continent", "Age")
 boxplot(data[,c(2:9,11,12)], names=label_names, col = c(1,2,3,4,5,6,7,8,10,11))
+
+hist(data$age, main = "Age Histogram", xlab = "Ages", ylab = "Frequency", col = "lightblue")
+hist(data$hr_results, main = "Hr Results Histogram", xlab = "Hr Results", ylab = "Frequency", col = "lightblue")
+hist(data$vo2_results,  main = "VO2 Results Histogram", xlab = "VO2 Results", ylab = "Frequency", col = "lightblue")
+hist(data$altitude_results,  main = "Altitude Results Histogram", xlab = "Altitude Results", ylab = "Frequency", col = "lightblue")
 
 corrplot(cor(data[,c(2:9,11,12)]), method = "square")
 
