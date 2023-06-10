@@ -113,9 +113,10 @@ data$hr_results <- min_max(data$hr_results)
 data$Continent <- min_max(data$Continent)
 data$Background <- min_max(data$Background)
 data$Team <- min_max(data$Team)
+data$gender <- min_max(data$gender)
 
-#write.csv(data, "normalised_data.csv", row.names = FALSE)
-#normalised_data <- read.csv("normalised_data.csv")
+write.csv(data, "normalised_data.csv", row.names = FALSE)
+normalised_data <- read.csv("normalised_data.csv")
 
 #5 - Crie um diagrama de correlação entre todos os atributos. Comente o que observa. 
 
