@@ -185,7 +185,12 @@ summary(normalised_data.test$vo2_results)
 #regressao multipla
 mlr.model<- lm(vo2_results ~ altitude_results + hr_results, data = normalised_data.train)
 
-summary(mlr.model)$coef
+par(mfrow=c(2,2))
+plot(mlr.model)
+
+View(summary(mlr.model)$coef)
+
+
 
 #arvore de regressao
 library(rpart)
@@ -226,16 +231,11 @@ nn.model.ii$result.matrix
 
 #---------------------------------------
 #exercicio 8
-# Multiple Linear Regression prediction
 mlr.pred <- predict(mlr.model, normalised_data.test)
-
-# Decision Tree prediction
 tree.pred <- predict(tree.model, normalised_data.test)
-
-# Neural Network prediction for different models
-nn.pred <- compute(nn.model, normalised_data.test[2:3])$net.result
-nn.i.pred <- compute(nn.model.i, normalised_data.test[2:3])$net.result
-nn.ii.pred <- compute(nn.model.ii, normalised_data.test[2:3])$net.result
+nn.pred <- predict(nn.model, normalised_data.test)
+nn.i.pred <- predict(nn.model.i, normalised_data.test)
+nn.ii.pred <- predict(nn.model.ii, normalised_data.test)
 
 # Install and load the 'Metrics' package for MAE and RMSE calculation
 if (!require(Metrics)) {
@@ -244,17 +244,30 @@ if (!require(Metrics)) {
 library(Metrics)
 
 # Calculate MAE and RMSE for all models
+# Create an empty data frame to store the results
+results <- data.frame(Model = character(),
+                      MAE = numeric(),
+                      RMSE = numeric(),
+                      stringsAsFactors=FALSE)
+
+# Create a list of models
 models <- list("Multiple Linear Regression" = mlr.pred, 
                "Decision Tree" = tree.pred, 
                "Neural Network (1 node)" = nn.pred, 
                "Neural Network (3 nodes)" = nn.i.pred, 
                "Neural Network (6,2 nodes)" = nn.ii.pred)
 
+# Iterate over each model, calculate MAE and RMSE, and add them to the data frame
 for (model_name in names(models)) {
   mae <- mae(normalised_data.test$vo2_results, models[[model_name]])
   rmse <- rmse(normalised_data.test$vo2_results, models[[model_name]])
-  print(paste(model_name, "- MAE:", round(mae, 2), "RMSE:", round(rmse, 2)))
+  results <- rbind(results, data.frame(Model = model_name, MAE = round(mae, 2), RMSE = round(rmse, 2)))
 }
+
+# View the results
+print(results)
+
+
 
 
 #--------------------------------------------------
@@ -271,6 +284,8 @@ print(t_test_result)
 t_test_result <- t.test(mlr.pred, nn.ii.pred , paired = TRUE)
 print(t_test_result)
 
+t_test_result <- t.test(nn.ii.pred,tree.model,paired = TRUE)
+print(t_test_result)
 #best is Multiple Linear Regression - MAE: 0.04 RMSE: 0.05 in this case
 
 
