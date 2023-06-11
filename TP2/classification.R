@@ -55,21 +55,24 @@ print(t_test_result)
 
 
 #alinea c
-# Predictions on the test data
-pred_nn <- predict(nn, newdata = normalised_data.test)
-pred_knn <- predict(knn, newdata = normalised_data.test)
+# Make predictions using the models
+nn_pred <- predict(nn, newdata = normalised_data)
+knn_pred <- predict(knn, newdata = normalised_data)
 
-# Confusion Matrix for Neural Network
-conf_mat_nn <- confusionMatrix(pred_nn, normalised_data.test$gender)
+# Compute confusion matrix for the neural network model
+cm_nn <- confusionMatrix(nn_pred, normalised_data$gender)
 
-# Confusion Matrix for K-Nearest Neighbors
-conf_mat_knn <- confusionMatrix(pred_knn, normalised_data.test$gender)
+# Compute confusion matrix for the KNN model
+cm_knn <- confusionMatrix(knn_pred, normalised_data$gender)
 
-# Print the confusion matrix and associated statistics
-print("Neural Network Performance:")
-print(conf_mat_nn)
-print("K-Nearest Neighbors Performance:")
-print(conf_mat_knn)
+# Print the overall statistics including Accuracy, Sensitivity, Specificity, and F1 score for neural network
+print(paste("Neural Network - Accuracy: ", cm_nn$overall["Accuracy"]))
+print(paste("Neural Network - Sensitivity: ", cm_nn$byClass["Sensitivity"]))
+print(paste("Neural Network - Specificity: ", cm_nn$byClass["Specificity"]))
+print(paste("Neural Network - F1 Score: ", cm_nn$byClass["F1"]))
 
-
-
+# Print the overall statistics including Accuracy, Sensitivity, Specificity, and F1 score for KNN
+print(paste("K-Nearest Neighbors - Accuracy: ", cm_knn$overall["Accuracy"]))
+print(paste("K-Nearest Neighbors - Sensitivity: ", cm_knn$byClass["Sensitivity"]))
+print(paste("K-Nearest Neighbors - Specificity: ", cm_knn$byClass["Specificity"]))
+print(paste("K-Nearest Neighbors - F1 Score: ", cm_knn$byClass["F1"]))
