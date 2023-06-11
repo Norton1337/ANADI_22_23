@@ -8,18 +8,10 @@ install.packages("gower")
 install.packages("hardhat")
 library(caret)
 
-#setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2")
+setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
 #data <- read.csv("ciclismo.csv")
-setwd("C:/Users/asus/Desktop/ANADI/iteracao_2/anadi_isep_23/TP2/data")
+#setwd("C:/Users/asus/Desktop/ANADI/iteracao_2/anadi_isep_23/TP2/data")
 normalised_data <- read.csv("normalised_data.csv")
-#normalised_data
-#1 - Estude a capacidade preditiva relativamente ao atributo “Pro_level” 
-#usando os seguintes métodos:
-
-#árvore de decisão;
-
-
-
 
 #3 - Estude a capacidade preditiva relativamente ao atributo “Gender” usando os seguintes métodos:
 # Convert 'gender' to a factor
