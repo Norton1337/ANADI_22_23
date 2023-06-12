@@ -4,7 +4,8 @@ library(ggplot2)
 
 #1 - Comece por carregar o ficheiro (“ciclismo.csv”) para o ambiente do R, 
 # verifique a sua dimensão e obtenha um sumário dos dados.
-setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
+setwd("./TP2/data")
+getwd()
 #setwd("C:/Users/asus/Desktop/ANADI/iteracao_2/anadi_isep_23/TP2/data")
 data <- read.csv("ciclismo.csv")
 dimensions <- dim(data) #11 colunas e 1000 linhas
@@ -171,6 +172,56 @@ corrplot(cor(data), method = "color",
          tl.col = "black", tl.srt = 45,
          addCoef.col = "black", number.cex = 0.8,
          col = colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))(200))
+
+#exercicio 6
+#a)Apresente a função linear resultante.
+
+data <- read.csv("ciclismo.csv")
+
+hr_results <- data$hr_results
+
+model <- lm(Altitude_results ~ hr_results, data = data)
+summary(model)
+
+# Check for any missing
+
+#b) Visualize a reta correspondente ao modelo de regressão linear simples e o
+#respetivo diagrama de dispersão
+
+plot(hr_results, altitude_results, xlab = "hr_results",
+ ylab = "Altitude_results", main = "Simple Linear Regression")
+abline(model, col = "red")
+
+# c) Calcule o erro médio absoluto (MAE) e raiz quadrada do erro médio (RMSE) do
+# modelo sobre os 30% casos de teste.
+
+install.packages("caret")
+library(caret)
+
+set.seed(123)
+
+length(data$altitude_results)
+length(data$hr_results)
+
+train_index <- createDataPartition(data$altitude_results, p = 0.7, list = FALSE)
+train_data <- data[trainIndex, ]
+test_data <- data[-trainIndex, ]
+
+
+model <- lm(altitude_results ~ hr_results, data = trainData)
+
+predictions <- predict(model, newdata = testData)
+
+mae <- mean(abs(predictions - testData$altitude_results))
+mae
+
+rmse <- sqrt(mean((predictions - testData$altitude_results)^2))
+rmse
+
+
+
+
+
 
 
 #exercicio 7
