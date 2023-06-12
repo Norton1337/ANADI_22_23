@@ -213,13 +213,32 @@ model <- lm(altitude_results ~ hr_results, data = trainData)
 predictions <- predict(model, newdata = testData)
 
 mae <- mean(abs(predictions - testData$altitude_results))
-mae
+mae #6.824551
 
 rmse <- sqrt(mean((predictions - testData$altitude_results)^2))
-rmse
+rmse #8.439539
 
 
+#d) Teste se é possível obter resultados melhores utilizando um modelo mais
+#complexo
 
+train_index <- createDataPartition(data$altitude_results, p = 0.7, list = FALSE)
+train_data <- data[trainIndex, ]
+test_data <- data[-trainIndex, ]
+
+model <- lm(altitude_results ~ hr_results + vo2_results, data = trainData)
+summary(model)
+
+
+predictions <- predict(model, newdata = testData)
+
+mae <- mean(abs(predictions - testData$altitude_results))
+mae #6.611263
+
+rmse <- sqrt(mean((predictions - testData$altitude_results)^2))
+rmse #8.180826
+
+#lower MAE and RMSE, so it is better :D
 
 
 
