@@ -176,9 +176,6 @@ corrplot(cor(data), method = "color",
 #exercicio 6
 #a)Apresente a função linear resultante.
 
-# data <- read.csv("ciclismo.csv")
-
-# hr_results <- data$hr_results
 
 model <- lm(altitude_results ~ hr_results, data = data)
 summary(model)
@@ -225,6 +222,7 @@ rmse #0.1139122
 train_index <- sample(c(TRUE,FALSE), nrow(data), replace = TRUE, prob = c(0.7,0.3))
 train_data <- data[train_index, ]
 test_data <- data[-train_index, ]
+
 
 model <- lm(altitude_results ~ hr_results + vo2_results, data = train_data)
 summary(model)
