@@ -4,7 +4,7 @@ library(ggplot2)
 
 #1 - Comece por carregar o ficheiro (“ciclismo.csv”) para o ambiente do R, 
 # verifique a sua dimensão e obtenha um sumário dos dados.
-setwd("./TP2/data")
+setwd("D:/Documentos/3º Ano/2ºSemestre/ANADI/anadi_isep_23/TP2/data")
 getwd()
 #setwd("C:/Users/asus/Desktop/ANADI/iteracao_2/anadi_isep_23/TP2/data")
 data <- read.csv("ciclismo.csv")
@@ -176,11 +176,11 @@ corrplot(cor(data), method = "color",
 #exercicio 6
 #a)Apresente a função linear resultante.
 
-data <- read.csv("ciclismo.csv")
+# data <- read.csv("ciclismo.csv")
 
-hr_results <- data$hr_results
+# hr_results <- data$hr_results
 
-model <- lm(Altitude_results ~ hr_results, data = data)
+model <- lm(altitude_results ~ hr_results, data = data)
 summary(model)
 
 # Check for any missing
@@ -188,7 +188,7 @@ summary(model)
 #b) Visualize a reta correspondente ao modelo de regressão linear simples e o
 #respetivo diagrama de dispersão
 
-plot(hr_results, altitude_results, xlab = "hr_results",
+plot(data$hr_results, data$altitude_results, xlab = "hr_results",
  ylab = "Altitude_results", main = "Simple Linear Regression")
 abline(model, col = "red")
 
@@ -203,40 +203,54 @@ set.seed(123)
 length(data$altitude_results)
 length(data$hr_results)
 
-train_index <- createDataPartition(data$altitude_results, p = 0.7, list = FALSE)
-train_data <- data[trainIndex, ]
-test_data <- data[-trainIndex, ]
+train_index <- sample(c(TRUE,FALSE), nrow(data), replace = TRUE, prob = c(0.7,0.3))
+train_data <- data[train_index, ]
+test_data <- data[-train_index, ]
 
 
-model <- lm(altitude_results ~ hr_results, data = trainData)
+model <- lm(altitude_results ~ hr_results, data = train_data)
 
-predictions <- predict(model, newdata = testData)
+predictions <- predict(model, newdata = test_data)
 
-mae <- mean(abs(predictions - testData$altitude_results))
-mae #6.824551
+mae <- mean(abs(predictions - test_data$altitude_results))
+mae #0.0935335
 
-rmse <- sqrt(mean((predictions - testData$altitude_results)^2))
-rmse #8.439539
+rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
+rmse #0.1139122
 
 
 #d) Teste se é possível obter resultados melhores utilizando um modelo mais
 #complexo
 
-train_index <- createDataPartition(data$altitude_results, p = 0.7, list = FALSE)
-train_data <- data[trainIndex, ]
-test_data <- data[-trainIndex, ]
+train_index <- sample(c(TRUE,FALSE), nrow(data), replace = TRUE, prob = c(0.7,0.3))
+train_data <- data[train_index, ]
+test_data <- data[-train_index, ]
 
-model <- lm(altitude_results ~ hr_results + vo2_results, data = trainData)
+model <- lm(altitude_results ~ hr_results + vo2_results, data = train_data)
 summary(model)
 
 
-predictions <- predict(model, newdata = testData)
+predictions <- predict(model, newdata = test_data)
 
-mae <- mean(abs(predictions - testData$altitude_results))
-mae #6.611263
+mae <- mean(abs(predictions - test_data$altitude_results))
+mae #0.0901299
 
-rmse <- sqrt(mean((predictions - testData$altitude_results)^2))
-rmse #8.180826
+rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
+rmse #0.1099387
+
+
+
+model <- lm(altitude_results ~ hr_results + vo2_results + Pro.level, data = train_data)
+summary(model)
+
+
+predictions <- predict(model, newdata = test_data)
+
+mae <- mean(abs(predictions - test_data$altitude_results))
+mae #0.08895729
+
+rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
+rmse #0.1088866
 
 #lower MAE and RMSE, so it is better :D
 
