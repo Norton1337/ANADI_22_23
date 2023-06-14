@@ -107,31 +107,20 @@ parse_results(confusion_matrix)
 
 #KNN
 #66,44% de Accuracy
-#labels_train <- prolevel.train[,which(names(prolevel.train) == "Pro.level")]
-#prolevel.train <- prolevel.train[,-which(names(prolevel.train) == "Pro.level")]
+labels_train <- prolevel.train[,which(names(prolevel.train) == "Pro.level")]
+prolevel.train <- prolevel.train[,-which(names(prolevel.train) == "Pro.level")]
 
-#labels_test <- prolevel.test[,which(names(prolevel.test) == "Pro.level")]
-#prolevel.test <- prolevel.test[,-which(names(prolevel.test) == "Pro.level")]
+labels_test <- prolevel.test[,which(names(prolevel.test) == "Pro.level")]
+prolevel.test <- prolevel.test[,-which(names(prolevel.test) == "Pro.level")]
 
-#labels_train <- factor(labels_train)
-param_grid <- expand.grid(k = 1:10)
-# Train and tune the KNN model
-knn_model <- train(
-  x = prolevel.train,
-  y = labels_train,
-  method = "knn",
-  tuneGrid = param_grid,
-  trControl = trainControl(method = "cv", number = 5)  # Specify the number of cross-validation folds
-)
+labels_train <- factor(labels_train)
 
-# Print the best tuned parameter
-print(knn_model$bestTune)
+k <- 3
+predictions <- knn(prolevel.train, prolevel.test, labels_train, k, prob=TRUE)
 
-# Make predictions using the tuned KNN model
-knn_predictions <- predict(knn_model, prolevel.test)
 labels_test <- factor(labels_test)
 
-m.conf<-table(labels_test,knn_predictions)
+m.conf<-table(labels_test,predictions)
 parse_results(m.conf)
 
 #a) Usando o método k-fold cross validation obtenha a média e o desvio padrão da 
@@ -288,6 +277,7 @@ print(model_knn)
 #Hipótese alternativa (H1): Há diferença significativa no desempenho dos dois melhores modelos.
 
 result <- wilcox.test(rsme_nn,rsme_tree)
+result$p.value
 
 if (result$p.value < 0.05) {
   print("Rejeita-se H0")
