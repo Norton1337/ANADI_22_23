@@ -6,7 +6,7 @@ library(rattle)
 library(class)
 library(neuralnet)
 
-set.seed(7)
+set.seed(123)
 setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
 data <- read.csv("ciclismo.csv")
 
@@ -41,10 +41,7 @@ data$Pro.level <- ifelse(data$Pro.level == "Continental", 0, 1)
 
 #Aplicando o One-Hot Enconder nos atrbutos categoricos não binarios
 
-#data <- data[,-c(9,2)]
-#data <- data[,c(3,4,6,7,8)]
-#data <- data[,-c(9,2,5,10)]
-data <- data[,c(3,4,6,7,8,10)]
+data <- data[,c(4,6,7,8)]
 encoded_df <- dummyVars("~.", data = data)
 data <- data.frame(predict(encoded_df, newdata = data))
 
@@ -52,26 +49,15 @@ data <- data.frame(predict(encoded_df, newdata = data))
 #1 - Estude a capacidade preditiva relativamente ao atributo “Pro_level” 
 #usando os seguintes métodos:
 
-#divisão do dataset em treino e validação 
-
-
+#divisão do dataset em treino e validação (70% e 30%)
 sample = sample(c(TRUE,FALSE), nrow(data), replace = TRUE, prob = c(0.7,0.3))
 
 prolevel.train = data[sample,]
-labels_train <- prolevel.train[,which(names(prolevel.train) == "Pro.level")]
-prolevel.train <- prolevel.train[,-which(names(prolevel.train) == "Pro.level")]
-
 prolevel.test = data[!sample,]
-labels_test <- prolevel.test[,which(names(prolevel.test) == "Pro.level")]
-prolevel.test <- prolevel.test[,-which(names(prolevel.test) == "Pro.level")]
-
-
 
 #árvore de decisão;
-#A arvore de decisão tem melhores resultados sem essas colunas
-#data <- data[,-c(9,2,5,8,10)]
-
-tree.model <- rpart(Pro.level ~ . , data = prolevel.train, method = "class")
+#67.12% de Accuracy
+tree.model <- rpart(Pro.level ~ hr_results + vo2_results + altitude_results, data = prolevel.train, method = "class")
 fancyRpartPlot(tree.model)
 
 rpart.plot(tree.model, digits = 3, fallen.leaves = TRUE)
@@ -97,35 +83,8 @@ parse_results <- function(m.conf) {
 m.conf<-table(prolevel.test$Pro.level,tree.pred)
 parse_results(m.conf)
 
-#KNN
-#Atinge 100% de accuracy sem esses dois atrbutos
-#data <- data[,-c(9,2)]
-
-labels_train <- factor(labels_train)
-param_grid <- expand.grid(k = 1:10)
-# Train and tune the KNN model
-knn_model <- train(
-  x = prolevel.train,
-  y = labels_train,
-  method = "knn",
-  tuneGrid = param_grid,
-  trControl = trainControl(method = "cv", number = 5)  # Specify the number of cross-validation folds
-)
-
-# Print the best tuned parameter
-print(knn_model$bestTune)
-
-# Make predictions using the tuned KNN model
-knn_predictions <- predict(knn_model, prolevel.test)
-
-labels_test <- factor(labels_test)
-
-m.conf<-table(labels_test,knn_predictions)
-parse_results(m.conf)
-
 #Rede Neuronal
-#data <- data[,-c(9,2,5,8,10)]
-#Atinge em média 67/68% de accuracy sem esses dados e com nummodes = 4
+#67.46% de Accuracy
 numnodes <- 2
 
 nn.model <- 
@@ -146,185 +105,169 @@ predicted_classes <- ifelse(predictions$net.result > 0.5, 1, 0)
 confusion_matrix <- table(predicted_classes, prolevel.test$Pro.level)
 parse_results(confusion_matrix)
 
+#KNN
+#66,44% de Accuracy
+#labels_train <- prolevel.train[,which(names(prolevel.train) == "Pro.level")]
+#prolevel.train <- prolevel.train[,-which(names(prolevel.train) == "Pro.level")]
+
+#labels_test <- prolevel.test[,which(names(prolevel.test) == "Pro.level")]
+#prolevel.test <- prolevel.test[,-which(names(prolevel.test) == "Pro.level")]
+
+#labels_train <- factor(labels_train)
+param_grid <- expand.grid(k = 1:10)
+# Train and tune the KNN model
+knn_model <- train(
+  x = prolevel.train,
+  y = labels_train,
+  method = "knn",
+  tuneGrid = param_grid,
+  trControl = trainControl(method = "cv", number = 5)  # Specify the number of cross-validation folds
+)
+
+# Print the best tuned parameter
+print(knn_model$bestTune)
+
+# Make predictions using the tuned KNN model
+knn_predictions <- predict(knn_model, prolevel.test)
+labels_test <- factor(labels_test)
+
+m.conf<-table(labels_test,knn_predictions)
+parse_results(m.conf)
 
 #a) Usando o método k-fold cross validation obtenha a média e o desvio padrão da 
 #taxa de acerto da previsão do atributo “Pro_level” com os dois melhores 
 #modelos obtidos na alínea anterior. 
 
-#d) Compare os resultados dos modelos. Discuta em detalhe qual o modelo que 
-#apresentou melhor e pior desempenho de acordo com os critérios: Accuracy; 
-#Sensitivity; Specificity e F1.
-
 RMSE <- function(test, predicted) {
   sqrt(mean((test - predicted) ^ 2))
 }
 
+k <- 10  # Number of folds
+ctrl = trainControl(
+  method = "cv",
+  number = k,
+  verboseIter = FALSE
+)
+
 #Arvore de decisão
-experiments = 20
-accuracy_tree = numeric()
-recall_tree = numeric()
-precision_tree = numeric()
-rmse_tree = numeric()
-specificity_tree = numeric()
+# Melhores resultados cp=0.05  Accuracy=0.6506394
 
-for (i in 1:experiments) {
-  
-  sample=sample(1:nrow(data), 0.7*nrow(data))
-  data.train = data[sample, ]
-  data.test = data[-sample, ]
-  
-  tree.model = rpart(Pro.level ~ . ,data = data.train, method="class")
+nrFolds <- 10
+accuracy_tree<-numeric()
+recall_tree <- numeric()
+precision_tree <- numeric()
+rsme_tree <- numeric()
+
+folds <- rep_len(1:nrFolds, nrow(prolevel.train))
+folds <- sample(folds, length(folds))
+
+for(k in 1:nrFolds) {
+  # actual split of the data
+  fold <- which(folds == k)
+  #k-1 to train and 1 to test
+  data.train <- prolevel.train[-fold,]
+  data.test <- prolevel.train[fold,]
+  tree.model = rpart(Pro.level ~ hr_results + vo2_results + altitude_results ,data = prolevel.train, method="class")
   tree.pred = predict(tree.model, data.test, type='class')
-  
-  m.conf <- confusionMatrix(factor(tree.pred), factor(data.test$Pro.level))
-  
-  #Accuracy for each experiment
-  accuracy_tree[i] = m.conf$overall['Accuracy']
-  
-  #Recall for each experiment
-  recall_tree[i] = m.conf$byClass['Sensitivity']
-  
-  #Precision for each experiment
-  precision_tree[i] = m.conf$byClass['Precision']
+  #head(tree.pred)
+  #printcp(tree.model)
+  confusion_tree <- confusionMatrix(as.factor(tree.pred), as.factor(data.test$Pro.level))
+  #or each fold:
+  accuracy_tree[k] = confusion_tree$overall["Accuracy"]
+  recall_tree[k] = confusion_tree$byClass["Sensitivity"]
+  precision_tree[k] = confusion_tree$byClass["Pos Pred Value"]
+  rsme_tree[k] = RMSE(as.numeric(data.test$Pro.level),as.numeric(tree.pred))
 
-  rmse_tree[i] = RMSE(as.numeric(data.test$Pro.level),as.numeric(tree.pred))
-  
-  specificity_tree[i] <- m.conf$byClass['Specificity']
-    
-  
 }
 
-mean_accuracy_tree = 100*round(mean(accuracy_tree),4)
-cat("average acc:", mean_accuracy_tree, "%, std deviation:", round(sd(accuracy_tree),4))
-cat("recall:", 100*round(mean(recall_tree),3), "%, std deviation:", round(sd(recall_tree),3))
-cat("precision:", 100*round(mean(precision_tree),3), "%, std deviation:", round(sd(precision_tree),3))
+cat("taxa de acerto media:", 100*round(mean(accuracy_tree),4), "%, desvio:", round(sd(accuracy_tree),4))
+cat("recall:", 100*round(mean(recall_tree),3), "%, desvio:", round(sd(recall_tree),3))
+cat("precision:", 100*round(mean(precision_tree),3), "%, desvio:", round(sd(precision_tree),3))
 f1=(2*round(mean(precision_tree),3)*round(sd(recall_tree),3))/(round(mean(precision_tree),3)+round(sd(recall_tree),3))
 cat("\n F1: ",f1)
-cat("average specificity:", 100*round(mean(specificity_tree),3), "%, std deviation:", round(sd(specificity_tree),4))
+cat("Média RMSE:", round(mean(rsme_tree),4))
 
+grid_tree <- expand.grid(cp = seq(0.01, 0.1, by = 0.01))
+
+model_tree <- train(as.factor(Pro.level) ~ altitude_results + vo2_results + hr_results,
+                  data = prolevel.train,
+                  trControl = ctrl,
+                  method = "rpart",
+                  tuneGrid = grid_tree,
+                  metric = "Accuracy")
+
+#print(model_tree)  # Print the cross-validation results
 
 #Rede Neuronal
-experiments = 20
-accuracy_nn = numeric()
-recall_nn = numeric()
-precision_nn = numeric()
-rmse_nn = numeric()
-specificity_nn = numeric()
+#Melhores resultados size = 6 and decay = 0.1, Accuracy = 0.6608056
+nrFolds <- 10
+accuracy_nn<-numeric()
+recall_nn <- numeric()
+precision_nn <- numeric()
+rsme_nn <- numeric()
 
-for (i in 1:experiments) {
+folds <- rep_len(1:nrFolds, nrow(prolevel.train))
+folds <- sample(folds, length(folds))
 
-  sample = sample(c(TRUE,FALSE), nrow(data), replace = TRUE, prob = c(0.7,0.3))
-  prolevel.train = data[sample,]
-  prolevel.test = data[!sample,]
+for(k in 1:nrFolds) {
+  # actual split of the data
+  fold <- which(folds == k)
+  
+  #k-1 to train and 1 to test
+  data.train <- prolevel.train[-fold,]
+  data.test <- prolevel.train[fold,]
   
   numnodes <- 2
-
+  
   nn.model <- 
     neuralnet(
-      Pro.level ~ .,
-      data = prolevel.train,
+      Pro.level ~ hr_results + vo2_results + altitude_results,
+      data = data.train,
       hidden = numnodes,
       act.fct = "logistic", 
       linear.output = FALSE
     )
-  plot(nn.model)
   
-  nn.model$result.matrix
-  
-  predictions <- compute(nn.model, prolevel.test[, -8])
+  predictions <- compute(nn.model, data.test[, -1])
   predicted_classes <- ifelse(predictions$net.result > 0.5, 1, 0)
   
-  m.conf <- confusionMatrix(factor(predicted_classes), factor(prolevel.test$Pro.level))
-  
-  #Accuracy for each experiment
-  accuracy_nn[i] = m.conf$overall['Accuracy']
-  
-  #Recall for each experiment
-  recall_nn[i] = m.conf$byClass['Sensitivity']
-  
-  #Precision for each experiment
-  precision_nn[i] = m.conf$byClass['Precision']
-  
-  rmse_nn[i] = RMSE(as.numeric(data.test$Pro.level),as.numeric(tree.pred))
-  
-  specificity_nn[i] <- m.conf$byClass['Specificity']
+  confusion_nn <- confusionMatrix(as.factor(predicted_classes), as.factor(data.test$Pro.level))
+
+  accuracy_nn[k] = confusion_nn$overall["Accuracy"]
+  recall_nn[k] = confusion_nn$byClass["Sensitivity"]
+  precision_nn[k] = confusion_nn$byClass["Pos Pred Value"]
+  rsme_nn[k] = RMSE(as.numeric(data.test$Pro.level), as.numeric(predicted_classes))
   
 }
 
-mean_accuracy_nn = 100*round(mean(accuracy_nn),4)
-cat("average acc:", mean_accuracy_nn, "%, std deviation:", round(sd(accuracy_nn),4))
-cat("recall:", 100*round(mean(recall_nn),3), "%, std deviation:", round(sd(recall_nn),3))
-cat("precision:", 100*round(mean(precision_nn),3), "%, std deviation:", round(sd(precision_knn),3))
+cat("taxa de acerto media:", 100*round(mean(accuracy_nn),4), "%, desvio:", round(sd(accuracy_nn),4))
+cat("recall:", 100*round(mean(recall_nn),3), "%, desvio:", round(sd(recall_nn),3))
+cat("precision:", 100*round(mean(precision_nn),3), "%, desvio:", round(sd(precision_nn),3))
 f1=(2*round(mean(precision_nn),3)*round(sd(recall_nn),3))/(round(mean(precision_nn),3)+round(sd(recall_nn),3))
 cat("\n F1: ",f1)
-cat("average specificity:", 100*round(mean(specificity_nn),3), "%, std deviation:", round(sd(specificity_nn),4))
+cat("Média RMSE:", round(mean(rsme_nn),4))
 
+grid_nn <- expand.grid(size = 2:10, decay = c(0.001, 0.01,0.1))
+model_nn <- train(as.factor(Pro.level) ~ altitude_results + vo2_results + hr_results,
+                  data = prolevel.train,
+                  trControl = ctrl,
+                  method = "nnet",
+                  tuneGrid = grid_nn,
+                  metric = "Accuracy")
 
+#print(model_nn)
 
 #KNN
-experiments = 20
-accuracy_knn = numeric()
-recall_knn = numeric()
-precision_knn = numeric()
-rmse_knn = numeric()
-specificity_knn = numeric()
+grid_knn <- expand.grid(k = c(1:10))
+model_knn <- train(as.factor(Pro.level) ~ altitude_results + vo2_results + hr_results, 
+                   data = prolevel.train,
+                   trControl = ctrl,
+                   tuneGrid = grid_knn,
+                   method = "knn",
+                   metric = "Accuracy")
 
+print(model_knn)
 
-for (i in 1:experiments) {
-  
-  sample = sample(c(TRUE,FALSE), nrow(data), replace = TRUE, prob = c(0.7,0.3))
-  
-  prolevel.train = data[sample,]
-  labels_train <- prolevel.train[,which(names(prolevel.train) == "Pro.level")]
-  prolevel.train <- prolevel.train[,-which(names(prolevel.train) == "Pro.level")]
-  
-  prolevel.test = data[!sample,]
-  labels_test <- prolevel.test[,which(names(prolevel.test) == "Pro.level")]
-  prolevel.test <- prolevel.test[,-which(names(prolevel.test) == "Pro.level")]
-  
-  labels_train <- factor(labels_train)
-  param_grid <- expand.grid(k = 1:15)
-  # Train and tune the KNN model
-  knn_model <- train(
-    x = prolevel.train,
-    y = labels_train,
-    method = "knn",
-    tuneGrid = param_grid,
-    trControl = trainControl(method = "cv", number = 10)  # Specify the number of cross-validation folds
-  )
-  
-  # Print the best tuned parameter
-  print(knn_model$bestTune)
-  
-  # Make predictions using the tuned KNN model
-  knn_predictions <- predict(knn_model, prolevel.test)
-  
-  labels_test <- factor(labels_test)
-  
-  m.conf <- confusionMatrix(factor(knn_predictions), factor(labels_test))
-  
-  #Accuracy for each experiment
-  accuracy_knn[i] = m.conf$overall['Accuracy']
-  
-  #Recall for each experiment
-  recall_knn[i] = m.conf$byClass['Sensitivity']
-  
-  #Precision for each experiment
-  precision_knn[i] = m.conf$byClass['Precision']
-  
-  rmse_knn[i] = RMSE(as.numeric(data.test$Pro.level),as.numeric(tree.pred))
-  
-  specificity_knn[i] <- m.conf$byClass['Specificity']
-  
-}
-
-mean_accuracy_knn = 100*round(mean(accuracy_knn),4)
-cat("average acc:", mean_accuracy_knn, "%, std deviation:", round(sd(accuracy_knn),4))
-cat("recall:", 100*round(mean(recall_knn),3), "%, std deviation:", round(sd(recall_knn),3))
-cat("precision:", 100*round(mean(precision_knn),3), "%, std deviation:", round(sd(precision_knn),3))
-f1=(2*round(mean(precision_knn),3)*round(sd(recall_knn),3))/(round(mean(precision_knn),3)+round(sd(recall_knn),3))
-cat("\n F1: ",f1)
-cat("average specificity:", 100*round(mean(specificity_knn),3), "%, std deviation:", round(sd(specificity_knn),4))
 
 #b) Dos três modelos, um é conhecido por ter uma forma de aprendizagem 
 #conhecida como “Lazy Learning”, identifique o modelo e as implicações deste 
@@ -344,7 +287,7 @@ cat("average specificity:", 100*round(mean(specificity_knn),3), "%, std deviatio
 #Hipótese nula (H0): Não há diferença significativa no desempenho dos dois melhores modelos.
 #Hipótese alternativa (H1): Há diferença significativa no desempenho dos dois melhores modelos.
 
-result <- wilcox.test(rmse_nn, rmse_tree)
+result <- wilcox.test(rsme_nn,rsme_tree)
 
 if (result$p.value < 0.05) {
   print("Rejeita-se H0")
@@ -353,7 +296,34 @@ if (result$p.value < 0.05) {
 }
 
 
+#d) Compare os resultados dos modelos. Discuta em detalhe qual o modelo que 
+#apresentou melhor e pior desempenho de acordo com os critérios: Accuracy; 
+#Sensitivity; Specificity e F1.
 
+predictions_knn <- predict(model_knn, newdata = prolevel.test[-1])
+predictions_tree <- predict(model_tree, newdata = prolevel.test[-1])
+predictions_nn <- predict(model_nn, newdata = prolevel.test[-1])
+
+# Confusion matrix for kNN
+confusion_knn <- confusionMatrix(predictions_knn, as.factor(prolevel.test$Pro.level))
+accuracy_knn <- confusion_knn$overall["Accuracy"]
+sensitivity_knn <- confusion_knn$byClass["Sensitivity"]
+specificity_knn <- confusion_knn$byClass["Specificity"]
+f1_knn <- confusion_knn$byClass["F1"]
+
+# Confusion matrix for neural network
+confusion_nn <- confusionMatrix(predictions_nn, as.factor(prolevel.test$Pro.level))
+accuracy_nn <- confusion_nn$overall["Accuracy"]
+sensitivity_nn <- confusion_nn$byClass["Sensitivity"]
+specificity_nn <- confusion_nn$byClass["Specificity"]
+f1_nn <- confusion_nn$byClass["F1"]
+
+# Confusion matrix for decision tree
+confusion_tree <- confusionMatrix(predictions_tree, as.factor(prolevel.test$Pro.level))
+accuracy_tree <- confusion_tree$overall["Accuracy"]
+sensitivity_tree <- confusion_tree$byClass["Sensitivity"]
+specificity_tree <- confusion_tree$byClass["Specificity"]
+f1_tree <- confusion_tree$byClass["F1"]
 
 
 
