@@ -184,7 +184,6 @@ test_data <- data[-train_index, ]
 
 model <- lm(altitude_results ~ hr_results, data = train_data)
 coef(model)
-summary(model)
 
 # Check for any missing
 
