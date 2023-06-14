@@ -84,7 +84,9 @@ data$Background <- match(data$Background, unique_backgrounds)
 label_names <- c("Altitude Results", "VO2 Results", "HR Results","Age")
 boxplot(data[,c(7:9,12)], names=label_names, col = c(3,4,5,6))
 
-hist(data$age, main = "Age Histogram", xlab = "Ages", ylab = "Frequency", col = "lightblue")
+par(mfrow=c(1,1))
+
+#hist(data$age, main = "Age Histogram", xlab = "Ages", ylab = "Frequency", col = "lightblue")
 hist(data$hr_results, main = "Hr Results Histogram", xlab = "Hr Results", ylab = "Frequency", col = "lightblue")
 hist(data$vo2_results,  main = "VO2 Results Histogram", xlab = "VO2 Results", ylab = "Frequency", col = "lightblue")
 hist(data$altitude_results,  main = "Altitude Results Histogram", xlab = "Altitude Results", ylab = "Frequency", col = "lightblue")
