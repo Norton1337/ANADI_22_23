@@ -192,7 +192,7 @@ abline(model, col = "red")
 # c) Calcule o erro médio absoluto (MAE) e raiz quadrada do erro médio (RMSE) do
 # modelo sobre os 30% casos de teste.
 
-install.packages("caret")
+# install.packages("caret")
 library(caret)
 
 set.seed(123)
@@ -210,10 +210,10 @@ model <- lm(altitude_results ~ hr_results, data = train_data)
 predictions <- predict(model, newdata = test_data)
 
 mae <- mean(abs(predictions - test_data$altitude_results))
-mae #0.0935335
+mae #0.09351187
 
 rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
-rmse #0.1139122
+rmse #0.1139178
 
 
 #d) Teste se é possível obter resultados melhores utilizando um modelo mais
@@ -276,7 +276,7 @@ rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
 rmse #0.1086007
 
 #exercicio 7
-#a) first holdout criteria 
+#a) first holdout criteria
 sample <- sample(c(TRUE,FALSE),nrow(normalised_data), replace=TRUE, prob=c(0.7,0.3))
 normalised_data.train <- normalised_data[sample,]
 normalised_data.test <- normalised_data[!sample,]
@@ -292,6 +292,8 @@ plot(mlr.model)
 
 View(summary(mlr.model)$coef)
 
+#q: Error in library(rpart.plot) : there is no package called 'rpart.plot'
+install.packages("rpart.plot")
 
 
 #arvore de regressao
@@ -353,10 +355,10 @@ results <- data.frame(Model = character(),
                       stringsAsFactors=FALSE)
 
 # Create a list of models
-models <- list("Multiple Linear Regression" = mlr.pred, 
-               "Decision Tree" = tree.pred, 
-               "Neural Network (1 node)" = nn.pred, 
-               "Neural Network (3 nodes)" = nn.i.pred, 
+models <- list("Multiple Linear Regression" = mlr.pred,
+               "Decision Tree" = tree.pred,
+               "Neural Network (1 node)" = nn.pred,
+               "Neural Network (3 nodes)" = nn.i.pred,
                "Neural Network (6,2 nodes)" = nn.ii.pred)
 
 # Iterate over each model, calculate MAE and RMSE, and add them to the data frame
