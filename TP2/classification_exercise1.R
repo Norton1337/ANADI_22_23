@@ -168,6 +168,14 @@ labels_test <- factor(labels_test)
 m.conf<-table(labels_test,predictions)
 parse_results(m.conf)
 
+# Confusion matrix for kNN
+confusion_knn <- confusionMatrix(labels_test,predictions)
+accuracy_knn <- confusion_knn$overall["Accuracy"]
+sensitivity_knn <- confusion_knn$byClass["Sensitivity"]
+specificity_knn <- confusion_knn$byClass["Specificity"]
+f1_knn <- confusion_knn$byClass["F1"]
+precision_knn <- confusion_knn$byClass["Pos Pred Value"]
+
 #a) Usando o método k-fold cross validation obtenha a média e o desvio padrão da 
 #taxa de acerto da previsão do atributo “Pro_level” com os dois melhores 
 #modelos obtidos na alínea anterior. 
@@ -177,12 +185,6 @@ RMSE <- function(test, predicted) {
 }
 
 k <- 10  # Number of folds
-ctrl = trainControl(
-  method = "cv",
-  number = k,
-  verboseIter = FALSE
-)
-
 #Arvore de decisão
 # Melhores resultados cp=0.05  Accuracy=0.6506394
 
@@ -221,16 +223,6 @@ f1=(2*round(mean(precision_tree),3)*round(sd(recall_tree),3))/(round(mean(precis
 cat("\n F1: ",f1)
 cat("Média RMSE:", round(mean(rsme_tree),4))
 
-grid_tree <- expand.grid(cp = seq(0.01, 0.1, by = 0.01))
-
-model_tree <- train(as.factor(Pro.level) ~ altitude_results + vo2_results + hr_results,
-                  data = prolevel.train,
-                  trControl = ctrl,
-                  method = "rpart",
-                  tuneGrid = grid_tree,
-                  metric = "Accuracy")
-
-#print(model_tree)  # Print the cross-validation results
 
 #Rede Neuronal
 #Melhores resultados size = 6 and decay = 0.1, Accuracy = 0.6608056
@@ -279,26 +271,6 @@ f1=(2*round(mean(precision_nn),3)*round(sd(recall_nn),3))/(round(mean(precision_
 cat("\n F1: ",f1)
 cat("Média RMSE:", round(mean(rsme_nn),4))
 
-grid_nn <- expand.grid(size = 2:10, decay = c(0.001, 0.01,0.1))
-model_nn <- train(as.factor(Pro.level) ~ altitude_results + vo2_results + hr_results,
-                  data = prolevel.train,
-                  trControl = ctrl,
-                  method = "nnet",
-                  tuneGrid = grid_nn,
-                  metric = "Accuracy")
-
-print(model_nn)
-
-#KNN
-grid_knn <- expand.grid(k = c(1:15))
-model_knn <- train(as.factor(Pro.level) ~ altitude_results + vo2_results + hr_results, 
-                   data = prolevel.train,
-                   trControl = ctrl,
-                   tuneGrid = grid_knn,
-                   method = "knn",
-                   metric = "Accuracy")
-
-print(model_knn$bestTune)
 
 
 #b) Dos três modelos, um é conhecido por ter uma forma de aprendizagem 
@@ -333,20 +305,15 @@ if (result$p.value < 0.05) {
 #apresentou melhor e pior desempenho de acordo com os critérios: Accuracy; 
 #Sensitivity; Specificity e F1.
 
-predictions_knn <- predict(model_knn, newdata = prolevel.test[-1])
-predictions_tree <- predict(model_tree, newdata = prolevel.test[-1])
-predictions_nn <- predict(model_nn, newdata = prolevel.test[-1])
 
-# Confusion matrix for kNN
-confusion_knn <- confusionMatrix(predictions_knn, as.factor(prolevel.test$Pro.level))
-accuracy_knn <- confusion_knn$overall["Accuracy"]
-sensitivity_knn <- confusion_knn$byClass["Sensitivity"]
-specificity_knn <- confusion_knn$byClass["Specificity"]
-f1_knn <- confusion_knn$byClass["F1"]
-precision_knn <- confusion_knn$byClass["Pos Pred Value"]
+predictions_tree <-predict(tree.model, prolevel.test, type='class')
+predictions <- compute(nn.model, prolevel.test[, -1])
+predictions_nn <- ifelse(predictions$net.result > 0.5, 1, 0)
+
+
 
 # Confusion matrix for neural network
-confusion_nn <- confusionMatrix(predictions_nn, as.factor(prolevel.test$Pro.level))
+confusion_nn <- confusionMatrix(as.factor(predictions_nn), as.factor(prolevel.test$Pro.level))
 accuracy_nn <- confusion_nn$overall["Accuracy"]
 precision_nn <- confusion_nn$byClass["Pos Pred Value"]
 sensitivity_nn <- confusion_nn$byClass["Sensitivity"]
