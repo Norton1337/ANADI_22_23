@@ -6,7 +6,7 @@ library(rattle)
 library(class)
 library(neuralnet)
 
-set.seed(123)
+set.seed(7)
 setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
 data <- read.csv("ciclismo.csv")
 
@@ -85,7 +85,33 @@ parse_results(m.conf)
 
 #Rede Neuronal
 #67.46% de Accuracy
-numnodes <- 2
+accuracy = numeric()
+
+for (k in 1:10){
+  nn.model <- 
+    neuralnet(
+      Pro.level ~ hr_results + vo2_results + altitude_results,
+      data = prolevel.train,
+      hidden = k,
+      act.fct = "logistic", 
+      linear.output = FALSE
+    )
+  
+  predictions <- compute(nn.model, prolevel.test[, -1])
+  predicted_classes <- ifelse(predictions$net.result > 0.5, 1, 0)
+  
+  confusion_nn <- confusionMatrix(factor(predicted_classes), factor(prolevel.test$Pro.level))
+
+  accuracy[k] = confusion_nn$overall["Accuracy"]
+  
+}
+
+numnodes <- which.max(accuracy)
+cores <- rep("lightblue", 10)  # Vetor de cores com "red" repetido 10 vezes
+cores[numnodes] <- "blue"       # Definindo a cor azul para o ponto de número 5
+
+plot(c(1:10), accuracy, type = "p", pch = 16, col = cores, xlab = "Nodes Number in a Neural Network", ylab = "Accuracy")
+
 
 nn.model <- 
   neuralnet(
@@ -99,25 +125,44 @@ plot(nn.model)
 
 nn.model$result.matrix
 
-predictions <- compute(nn.model, prolevel.test[, -8])
+predictions <- compute(nn.model, prolevel.test[, -1])
 predicted_classes <- ifelse(predictions$net.result > 0.5, 1, 0)
 
 confusion_matrix <- table(predicted_classes, prolevel.test$Pro.level)
 parse_results(confusion_matrix)
 
 #KNN
-#66,44% de Accuracy
+#66.44% de Accuracy
+
 labels_train <- prolevel.train[,which(names(prolevel.train) == "Pro.level")]
-prolevel.train <- prolevel.train[,-which(names(prolevel.train) == "Pro.level")]
+train <- prolevel.train[,-which(names(prolevel.train) == "Pro.level")]
 
 labels_test <- prolevel.test[,which(names(prolevel.test) == "Pro.level")]
-prolevel.test <- prolevel.test[,-which(names(prolevel.test) == "Pro.level")]
+test <- prolevel.test[,-which(names(prolevel.test) == "Pro.level")]
 
 labels_train <- factor(labels_train)
 
-k <- 3
-predictions <- knn(prolevel.train, prolevel.test, labels_train, k, prob=TRUE)
+for (k in 1:15){
+  predictions <- knn(train, test, labels_train, k, prob=TRUE)
+  
+  labels_test <- factor(labels_test)
+  
+  confusion_knn <- confusionMatrix(labels_test,predictions)
+  
+  accuracy[k] = confusion_knn$overall["Accuracy"]
+  #print(accuracy[k])
+  
+}
 
+best_k <- which.max(accuracy)
+
+cores <- rep("lightblue", 10)  # Vetor de cores com "red" repetido 10 vezes
+cores[best_k] <- "blue"       # Definindo a cor azul para o ponto de número 5
+
+plot(c(1:15), accuracy, type = "p", pch = 16, col = cores, xlab = "k-nearest neighbors", ylab = "Accuracy")
+
+
+predictions <- knn(train, test, labels_train, best_k, prob=TRUE)
 labels_test <- factor(labels_test)
 
 m.conf<-table(labels_test,predictions)
@@ -206,8 +251,6 @@ for(k in 1:nrFolds) {
   data.train <- prolevel.train[-fold,]
   data.test <- prolevel.train[fold,]
   
-  numnodes <- 2
-  
   nn.model <- 
     neuralnet(
       Pro.level ~ hr_results + vo2_results + altitude_results,
@@ -244,10 +287,10 @@ model_nn <- train(as.factor(Pro.level) ~ altitude_results + vo2_results + hr_res
                   tuneGrid = grid_nn,
                   metric = "Accuracy")
 
-#print(model_nn)
+print(model_nn)
 
 #KNN
-grid_knn <- expand.grid(k = c(1:10))
+grid_knn <- expand.grid(k = c(1:15))
 model_knn <- train(as.factor(Pro.level) ~ altitude_results + vo2_results + hr_results, 
                    data = prolevel.train,
                    trControl = ctrl,
@@ -255,7 +298,7 @@ model_knn <- train(as.factor(Pro.level) ~ altitude_results + vo2_results + hr_re
                    method = "knn",
                    metric = "Accuracy")
 
-print(model_knn)
+print(model_knn$bestTune)
 
 
 #b) Dos três modelos, um é conhecido por ter uma forma de aprendizagem 
@@ -273,8 +316,8 @@ print(model_knn)
 #modelos obtidos anteriormente (use um nível de significância de 5%). 
 #Identifique o modelo que apresenta o melhor desempenho. 
 
-#Hipótese nula (H0): Não há diferença significativa no desempenho dos dois melhores modelos.
-#Hipótese alternativa (H1): Há diferença significativa no desempenho dos dois melhores modelos.
+#Hipótese nula (H0): Há diferença significativa no desempenho dos dois melhores modelos.
+#Hipótese alternativa (H1): Não Há diferença significativa no desempenho dos dois melhores modelos.
 
 result <- wilcox.test(rsme_nn,rsme_tree)
 result$p.value
@@ -300,10 +343,12 @@ accuracy_knn <- confusion_knn$overall["Accuracy"]
 sensitivity_knn <- confusion_knn$byClass["Sensitivity"]
 specificity_knn <- confusion_knn$byClass["Specificity"]
 f1_knn <- confusion_knn$byClass["F1"]
+precision_knn <- confusion_knn$byClass["Pos Pred Value"]
 
 # Confusion matrix for neural network
 confusion_nn <- confusionMatrix(predictions_nn, as.factor(prolevel.test$Pro.level))
 accuracy_nn <- confusion_nn$overall["Accuracy"]
+precision_nn <- confusion_nn$byClass["Pos Pred Value"]
 sensitivity_nn <- confusion_nn$byClass["Sensitivity"]
 specificity_nn <- confusion_nn$byClass["Specificity"]
 f1_nn <- confusion_nn$byClass["F1"]
@@ -312,6 +357,7 @@ f1_nn <- confusion_nn$byClass["F1"]
 confusion_tree <- confusionMatrix(predictions_tree, as.factor(prolevel.test$Pro.level))
 accuracy_tree <- confusion_tree$overall["Accuracy"]
 sensitivity_tree <- confusion_tree$byClass["Sensitivity"]
+precision_tree <- confusion_tree$byClass["Pos Pred Value"]
 specificity_tree <- confusion_tree$byClass["Specificity"]
 f1_tree <- confusion_tree$byClass["F1"]
 
