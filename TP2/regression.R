@@ -219,10 +219,6 @@ rmse #0.1139122
 #d) Teste se é possível obter resultados melhores utilizando um modelo mais
 #complexo
 
-train_index <- sample(c(TRUE,FALSE), nrow(data), replace = TRUE, prob = c(0.7,0.3))
-train_data <- data[train_index, ]
-test_data <- data[-train_index, ]
-
 
 model <- lm(altitude_results ~ hr_results + vo2_results, data = train_data)
 summary(model)
@@ -231,10 +227,10 @@ summary(model)
 predictions <- predict(model, newdata = test_data)
 
 mae <- mean(abs(predictions - test_data$altitude_results))
-mae #0.0901299
+mae #0.8991354
 
 rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
-rmse #0.1099387
+rmse #0.1098652
 
 
 
@@ -245,23 +241,39 @@ summary(model)
 predictions <- predict(model, newdata = test_data)
 
 mae <- mean(abs(predictions - test_data$altitude_results))
-mae #0.08895729
+mae #0.887277
 
 rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
-rmse #0.1088866
+rmse #0.1086133
 
+# with Team (-0.17)
 
-model <- lm(altitude_results ~ hr_results + vo2_results + Pro.level +  Team, data = train_data)
+model <- lm(altitude_results ~ hr_results + vo2_results + Pro.level + Team, data = train_data)
 summary(model)
 
 
 predictions <- predict(model, newdata = test_data)
 
 mae <- mean(abs(predictions - test_data$altitude_results))
-mae #0.08865829
+mae #0.08778635
 
 rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
-rmse #0.1086913
+rmse #0.1076502
+
+
+# with age (0.01)
+
+model <- lm(altitude_results ~ hr_results + vo2_results + Pro.level + age, data = train_data)
+summary(model)
+
+
+predictions <- predict(model, newdata = test_data)
+
+mae <- mean(abs(predictions - test_data$altitude_results))
+mae #0.08872895
+
+rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
+rmse #0.1086007
 
 #exercicio 7
 #a) first holdout criteria 
