@@ -4,8 +4,8 @@ library(ggplot2)
 
 #1 - Comece por carregar o ficheiro (“ciclismo.csv”) para o ambiente do R, 
 # verifique a sua dimensão e obtenha um sumário dos dados.
-setwd("C:/Users/manu0/Desktop/RESTO/ANADI/TP2/data")
-#getwd()
+setwd("./TP2/data")
+getwd()
 #setwd("C:/Users/asus/Desktop/ANADI/iteracao_2/anadi_isep_23/TP2/data")
 data <- read.csv("ciclismo.csv")
 dimensions <- dim(data) #11 colunas e 1000 linhas
@@ -81,12 +81,10 @@ barplot(count_background,
 unique_backgrounds <- unique(data$Background)
 data$Background <- match(data$Background, unique_backgrounds)
 
-label_names <- c("Altitude Results", "VO2 Results", "HR Results","Age")
-boxplot(data[,c(7:9,12)], names=label_names, col = c(3,4,5,6))
+label_names <- c("Gender", "Team", "Background", "Level", "Winter Camp", "Altitude", "VO2", "HR", "Continent", "Age")
+boxplot(data[,c(2:9,11,12)], names=label_names, col = c(1,2,3,4,5,6,7,8,10,11))
 
-par(mfrow=c(1,1))
-
-#hist(data$age, main = "Age Histogram", xlab = "Ages", ylab = "Frequency", col = "lightblue")
+hist(data$age, main = "Age Histogram", xlab = "Ages", ylab = "Frequency", col = "lightblue")
 hist(data$hr_results, main = "Hr Results Histogram", xlab = "Hr Results", ylab = "Frequency", col = "lightblue")
 hist(data$vo2_results,  main = "VO2 Results Histogram", xlab = "VO2 Results", ylab = "Frequency", col = "lightblue")
 hist(data$altitude_results,  main = "Altitude Results Histogram", xlab = "Altitude Results", ylab = "Frequency", col = "lightblue")
@@ -177,22 +175,17 @@ corrplot(cor(data), method = "color",
 
 #exercicio 6
 #a)Apresente a função linear resultante.
-#dividir o 
-data <- read.csv("ciclismo.csv")
 
-train_index <-  sample(1:nrow(data), 0.7*nrow(data))
-train_data <- data[train_index, ]
-test_data <- data[-train_index, ]
 
-model <- lm(altitude_results ~ hr_results, data = train_data)
-coef(model)
+model <- lm(altitude_results ~ hr_results, data = data)
+summary(model)
 
 # Check for any missing
 
 #b) Visualize a reta correspondente ao modelo de regressão linear simples e o
 #respetivo diagrama de dispersão
 
-plot(train_data$hr_results, train_data$altitude_results, xlab = "hr_results",
+plot(data$hr_results, data$altitude_results, xlab = "hr_results",
  ylab = "Altitude_results", main = "Simple Linear Regression")
 abline(model, col = "red")
 
@@ -207,23 +200,29 @@ set.seed(123)
 length(data$altitude_results)
 length(data$hr_results)
 
-train_index <- createDataPartition(data$altitude_results, p = 0.7, list = FALSE)
-train_data <- data[trainIndex, ]
-test_data <- data[-trainIndex, ]
+train_index <- sample(c(TRUE,FALSE), nrow(data), replace = TRUE, prob = c(0.7,0.3))
+train_data <- data[train_index, ]
+test_data <- data[-train_index, ]
 
-model <- lm(altitude_results ~ hr_results, data = trainData)
 
-predictions <- predict(model, newdata = testData)
+model <- lm(altitude_results ~ hr_results, data = train_data)
 
-mae <- mean(abs(predictions - testData$altitude_results))
-mae #6.824551
+predictions <- predict(model, newdata = test_data)
 
-rmse <- sqrt(mean((predictions - testData$altitude_results)^2))
-rmse #8.439539
+mae <- mean(abs(predictions - test_data$altitude_results))
+mae #0.0935335
+
+rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
+rmse #0.1139122
 
 
 #d) Teste se é possível obter resultados melhores utilizando um modelo mais
 #complexo
+
+train_index <- sample(c(TRUE,FALSE), nrow(data), replace = TRUE, prob = c(0.7,0.3))
+train_data <- data[train_index, ]
+test_data <- data[-train_index, ]
+
 
 model <- lm(altitude_results ~ hr_results + vo2_results, data = train_data)
 summary(model)
@@ -232,13 +231,37 @@ summary(model)
 predictions <- predict(model, newdata = test_data)
 
 mae <- mean(abs(predictions - test_data$altitude_results))
-mae #6.611263
+mae #0.0901299
 
 rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
-rmse #8.180826
+rmse #0.1099387
 
-#lower MAE and RMSE, so it is better :D
 
+
+model <- lm(altitude_results ~ hr_results + vo2_results + Pro.level, data = train_data)
+summary(model)
+
+
+predictions <- predict(model, newdata = test_data)
+
+mae <- mean(abs(predictions - test_data$altitude_results))
+mae #0.08895729
+
+rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
+rmse #0.1088866
+
+
+model <- lm(altitude_results ~ hr_results + vo2_results + Pro.level +  Team, data = train_data)
+summary(model)
+
+
+predictions <- predict(model, newdata = test_data)
+
+mae <- mean(abs(predictions - test_data$altitude_results))
+mae #0.08865829
+
+rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
+rmse #0.1086913
 
 #exercicio 7
 #a) first holdout criteria 
