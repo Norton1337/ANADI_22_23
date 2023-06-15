@@ -222,6 +222,7 @@ cat("precision:", 100*round(mean(precision_tree),3), "%, desvio:", round(sd(prec
 f1=(2*round(mean(precision_tree),3)*round(sd(recall_tree),3))/(round(mean(precision_tree),3)+round(sd(recall_tree),3))
 cat("\n F1: ",f1)
 cat("Média RMSE:", round(mean(rsme_tree),4))
+print(rsme_tree)
 
 
 #Rede Neuronal
@@ -247,7 +248,7 @@ for(k in 1:nrFolds) {
     neuralnet(
       Pro.level ~ hr_results + vo2_results + altitude_results,
       data = data.train,
-      hidden = numnodes,
+      hidden = 1,
       act.fct = "logistic", 
       linear.output = FALSE
     )
@@ -271,7 +272,7 @@ f1=(2*round(mean(precision_nn),3)*round(sd(recall_nn),3))/(round(mean(precision_
 cat("\n F1: ",f1)
 cat("Média RMSE:", round(mean(rsme_nn),4))
 
-
+print(rsme_nn)
 
 #b) Dos três modelos, um é conhecido por ter uma forma de aprendizagem 
 #conhecida como “Lazy Learning”, identifique o modelo e as implicações deste 
