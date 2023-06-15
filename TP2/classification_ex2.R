@@ -84,6 +84,7 @@ parse_results <- function(m.conf) {
 m.conf <- table(winterTrainingCamp.test$Winter.Training.Camp, tree.pred)
 parse_results(m.conf)
 
+
 #66.1% accuracy
 
 
@@ -223,11 +224,11 @@ cat("Média RMSE:", round(mean(rsme_nn),4))
 #b) Verifique se existe diferença significativa no desempenho dos dois melhores 
 # modelos obtidos anteriormente (use um nível de significância de 5%).
 
-#Hipótese nula (H0): Não há diferença significativa no desempenho dos dois melhores modelos.
-#Hipótese alternativa (H1): Há diferença significativa no desempenho dos dois melhores modelos.
 
+#Hipótese nula (H0): There is no significant difference in the performance of the decision tree and neural network models.
+#Hipótese alternativa (H1): There is a significant difference in the performance of the decision tree and neural network models.
 
-result <- wilcox.test(rsme_nn, rsme_tree)
+result <- wilcox.test(rsme_nn,rsme_tree)
 result$p.value
 
 if (result$p.value < 0.05) {
@@ -235,6 +236,7 @@ if (result$p.value < 0.05) {
 } else {
   print("Rejeita-se H1")
 }
+
 
 # c) Compare os resultados dos modelos. Identifique o modelo que apresenta o 
 # melhor desempenho, de acordo com os critérios: Accuracy; Sensitivity; 

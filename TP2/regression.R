@@ -12,7 +12,6 @@ dimensions <- dim(data) #11 colunas e 1000 linhas
 data_summary <- summary(data) #Possui variaveis categorias, númericas e binárias
 
 #2 - Derive um novo atributo Age usando como valor do atributo dob
-
 ages <- interval(as.Date(data$dob), today()) %/% years(1)
 data$age <- ages
 
@@ -167,6 +166,7 @@ normalised_data <- read.csv("normalised_data.csv")
 
 corrplot(cor(data), method="circle")
 
+
 corrplot(cor(data), method = "color",
          type = "lower", order = "hclust",
          tl.col = "black", tl.srt = 45,
@@ -227,7 +227,7 @@ summary(model)
 predictions <- predict(model, newdata = test_data)
 
 mae <- mean(abs(predictions - test_data$altitude_results))
-mae #0.8991354
+mae #0.08991354
 
 rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
 rmse #0.1098652
@@ -241,7 +241,7 @@ summary(model)
 predictions <- predict(model, newdata = test_data)
 
 mae <- mean(abs(predictions - test_data$altitude_results))
-mae #0.887277
+mae #0.0887277
 
 rmse <- sqrt(mean((predictions - test_data$altitude_results)^2))
 rmse #0.1086133
